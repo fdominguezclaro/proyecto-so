@@ -1,7 +1,9 @@
 #pragma once
+#include "structs/structs.h"
 
+/** Representa un archivo abierto */
 typedef struct FILE {
-    int value;
+    Directory* directory;
 } crFILE;
 
 void cr_mount(char* diskname);
