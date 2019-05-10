@@ -34,10 +34,8 @@ CFLAGS=-Wunused -Wall $(OPT)
 
 # Matemáticas (C Math library)
 MTH=-lm
-# Interfaz gráfica GTK+
-GTK=`pkg-config --cflags --libs gtk+-3.0`
 
-LIB=$(GTK) $(MTH)
+LIB=$(MTH)
 
 ###############################################################################
 # MÓDULOS Y PROGRAMAS                                                         #
