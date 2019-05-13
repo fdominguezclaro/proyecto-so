@@ -1,8 +1,11 @@
 #include "cr_API.h"
+#include "functions/functions.h"
+
+char* DISK_PATH;
 
 void cr_mount(char* diskname)
 {
-
+  DISK_PATH = diskname;
 }
 
 void cr_bitmap()
@@ -17,7 +20,7 @@ int cr_exists(char* path)
 
 void cr_ls(char* path)
 {
-
+  read_dir_block(path);
 }
 
 int cr_mkdir(char *foldername)
