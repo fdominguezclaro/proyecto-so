@@ -1,5 +1,6 @@
 #include "cr_API.h"
 #include "functions/functions.h"
+#include "structs/graph.h"
 
 char* DISK_PATH;
 
@@ -20,7 +21,8 @@ int cr_exists(char* path)
 
 void cr_ls(char* path)
 {
-  read_dir_block(path);
+  Graph* graph = load_disk();
+  graph_destroy(graph);
 }
 
 int cr_mkdir(char *foldername)
