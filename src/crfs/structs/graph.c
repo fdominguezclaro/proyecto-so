@@ -37,7 +37,8 @@ static void nodes_destroy(Node* node)
     for (int i = 0; i < node -> count; i++) {
       nodes_destroy(node -> childs[i]);
     }
-    free(node->childs);
+    free(node -> name);
+    free(node -> childs);
     free(node);
   }
 }
@@ -68,8 +69,26 @@ void graph_destroy(Graph* graph)
   free(graph);
 }
 
-/** imprime arbol de directorios. No implementada todavia*/
-void print_graph(Graph* graph)
-{
+void node_printer(Node *node, int depth) {
+  if (node)
+  {
+    for (int i = 0; i < node -> count; i++)
+    {
+      for (int j = 0; j < depth; j++)
+      {
+        printf("--");
+      }
+      printf("> ");
+      printf("%s\n", node -> childs[i] -> name);
+      node_printer(node -> childs[i], depth + 1);
+    }
+  }
+}
 
+/** imprime arbol de directorios */
+void graph_printer(Graph* graph)
+{
+  int counter = 1;
+  printf("/%s\n", graph -> root -> name);
+  node_printer(graph->root, counter);
 }

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "structs.h"
+#include <string.h>
 
 /** Estructura de un nodo del grafo. Mantiene una referencia al nodo
 siguiente y al nodo anterior ademas de mantener un numero */
@@ -40,6 +41,9 @@ void graph_append(Graph* graph, Node* parent, Node* node);
 
 /** Funcion que obtiene el valor del grafo en la posicion dada */
 int graph_get(Graph* graph, int position);
+
+/** imprime arbol de directorios. No implementada todavia*/
+void graph_printer(Graph* graph);
 
 /** Funcion que destruyel grafo liberando la memoria utilizada */
 void graph_destroy(Graph* graph);

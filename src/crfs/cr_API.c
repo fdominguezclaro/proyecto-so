@@ -22,6 +22,7 @@ int cr_exists(char* path)
 void cr_ls(char* path)
 {
   Graph* graph = load_disk();
+  graph_printer(graph);
   graph_destroy(graph);
 }
 

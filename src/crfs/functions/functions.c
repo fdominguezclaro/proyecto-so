@@ -52,10 +52,15 @@ static unsigned char *load_bitmap(void)
 Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap)
 {
 	unsigned char type = buffer[0];
-	char *name = (char *)(buffer + 1);
+	if (type == (unsigned char)1) return NULL;
+
+	char *aux_name = (char *) (buffer + 1);
+	char *name = malloc(sizeof(char) * (strlen(aux_name) + 1));
+	strcpy(name, aux_name);
+
 	unsigned int index = (unsigned int)buffer[30] * 256 + (unsigned int)buffer[31];
 
-	if (type == (unsigned char)1) return NULL;
+
 	printf("Reading Entry N° %u, %s, %i\n", type, name, index);
 
 	if (type == (unsigned char)2) printf("DIR %s index: %u\n", name, index);
@@ -97,10 +102,12 @@ void load_dir(Graph *graph, Node *parent)
 	// Primera llamada crea al root
 	if (!parent)
 	{
+		char *root_name = malloc(sizeof(char) * 5);
+		strcpy(root_name, "root");
 		dir_entries = read_dir_block(0, graph->bytemap);
-		Dir_parser *root_entry = dir_parser_init((unsigned char)2, "root", 0);
+		Dir_parser *root_entry = dir_parser_init((unsigned char)2, root_name, 0);
 		parent = node_init(root_entry);
-		dir_parser_destroy(root_entry);
+		free(root_entry);
 		// Agrego el nodo raiz
 		graph_append(graph, NULL, parent);
 	}
@@ -117,7 +124,7 @@ void load_dir(Graph *graph, Node *parent)
 
 		// Creo un nuevo nodo
 		Node *node = node_init(dir_entries[i]);
-		dir_parser_destroy(dir_entries[i]);
+		free(dir_entries[i]);
 
 		// Llamado recursivo solo si es directorio y no es el padre
 		if (node->type == (unsigned char)2) load_dir(graph, node);

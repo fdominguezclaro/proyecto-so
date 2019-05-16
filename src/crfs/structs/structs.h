@@ -48,5 +48,3 @@ Directory* directory_init();
 void directory_destroy(Directory* directory);
 
 Dir_parser* dir_parser_init(unsigned char type, char* name, unsigned int index);
-
-void dir_parser_destroy(Dir_parser* dir_parser);
