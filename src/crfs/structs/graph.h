@@ -30,12 +30,12 @@ typedef struct graph
 } Graph;
 
 
-/** Constructor de n grafo. La crea vacia inicialmente */
+/** Inicializa un arbol vacio que sera la estructura que representa los directorios */
 Graph* graph_init(unsigned char* bytemap);
 
 Node* node_init(Dir_parser* dir_parser);
 
-/** Funcion que agrega un elemento al final del grafo */
+/** Agrega un nodo (archivo o directorio) */
 void graph_append(Graph* graph, Node* parent, Node* node);
 
 /** Funcion que obtiene el valor del grafo en la posicion dada */

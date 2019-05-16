@@ -17,6 +17,7 @@ Node* node_init(Dir_parser* dir_parser)
   return node;
 }
 
+/** Inicializa un arbol vacio que sera la estructura que representa los directorios */
 Graph* graph_init(unsigned char* bytemap)
 {
   Graph* graph = malloc(sizeof(Graph));
@@ -43,7 +44,8 @@ static void nodes_destroy(Node* node)
 /** Agrega un nodo (archivo o directorio) */
 void graph_append(Graph* graph, Node* parent, Node* node)
 {
-  if (!graph -> root)
+  // printf("Name: %s\n", node -> name);
+  if ((node -> index == 0) & !graph -> root)
   {
     graph -> root = node;
   } else
@@ -65,7 +67,7 @@ void graph_destroy(Graph* graph)
   free(graph);
 }
 
-/** imprime arbol de directorios*/
+/** imprime arbol de directorios. No implementada todavia*/
 void print_graph(Graph* graph)
 {
 
