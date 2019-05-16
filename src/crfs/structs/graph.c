@@ -37,6 +37,7 @@ static void nodes_destroy(Node* node)
     for (int i = 0; i < node -> count; i++) {
       nodes_destroy(node -> childs[i]);
     }
+    free(node->childs);
     free(node);
   }
 }
