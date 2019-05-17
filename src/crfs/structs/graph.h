@@ -19,6 +19,8 @@ typedef struct node
   struct node** childs;
   char* name;
   char* path;
+  // For BFS in case of needed: Never use free(node -> next);
+  struct node* next;
   unsigned char type;
   unsigned int index;
   int count;
@@ -35,6 +37,11 @@ typedef struct graph
   unsigned char* bytemap;
 } Graph;
 
+typedef struct queue {
+  Node *head;
+  Node *tail;
+} Queue;
+
 ////////////////////////////////////
 //        Public Functions        //
 ////////////////////////////////////
@@ -47,14 +54,15 @@ Graph* graph_init(unsigned char* bytemap);
  */
 Node* node_init(Dir_parser* dir_parser, char *parent_path);
 
+Queue* queue_init(Node* root);
+
 /** Agrega un nodo (archivo o directorio) */
 void graph_append(Graph* graph, Node* parent, Node* node);
 
-/** Busca un path en DFS
- * Retorna el nodo en caso de encontrarlo
- * Sino, retorna NULL
- */
-Node* graph_search(Node* graph, char* path);
+/** Busca en forma BFS un archivo o directorio y lo retorna 
+ * Retorna NULL si no lo encuentra
+*/
+Node* graph_search(Node* root, char* path);
 
 /** Funcion que destruyel grafo liberando la memoria utilizada */
 void graph_destroy(Graph* graph);

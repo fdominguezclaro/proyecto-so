@@ -19,9 +19,7 @@ int main(int argc, char *argv[])
   // Se monta el disco.
   cr_mount(argv[1]);
 
-  char dir_path[100];
-  strcpy(dir_path, "/root");
-  cr_ls(dir_path);
+  cr_ls("/root/memes/free.jpg");
 
   // cr_bitmap();
 

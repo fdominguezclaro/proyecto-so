@@ -33,27 +33,24 @@ int cr_exists(char* path)
   graph_destroy(graph);
 }
 
-/** Recibe un string (alloc'd) y busca el path para imprimir su contenido
- * char *string = malloc(sizeof(char) * 100);
- * strcpy(string, "/root/thanos");
- * cr_ls(string);
- * free(string);
-*/
+/** Recibe un path de la forma "/carpeta/file_or_directory" */
 void cr_ls(char* path)
 {
   Graph* graph = load_disk();
   // graph_printer(graph);
-
   Node *entry = graph_search(graph -> root, path);
   if (!entry) printf("Path inexistente\n");
   else {
-    printf("Directories and Files in %s:\n", path);
-    for (int i = 0; i < entry -> count; i++) {
-      if (i != entry -> count - 1) printf("%s, ", entry->childs[i] -> name);
-      else printf("%s\n", entry->childs[i] -> name);
+    if (entry -> type == (unsigned char) 4) printf("%s es un archivo, no un directorio\n", path);
+    else {
+      printf("Directorios y archivos en %s:\n", path);
+      for (int i = 0; i < entry -> count; i++)
+      {
+        if (i != entry -> count - 1) printf("%s, ", entry->childs[i] -> name);
+        else printf("%s\n", entry->childs[i] -> name);
+      }
     }
   }
-
   graph_destroy(graph);
 }
 

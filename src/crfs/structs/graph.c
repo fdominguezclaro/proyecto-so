@@ -19,6 +19,7 @@ Node* node_init(Dir_parser* dir_parser, char *parent_path)
   node -> count = 0;
   node -> type = dir_parser -> type;
   node -> name = dir_parser -> name;
+  node -> next = NULL;
 
   if (!parent_path) {
     node -> path = malloc(sizeof(char) * (strlen(node->name) + 2));
@@ -48,6 +49,16 @@ Graph* graph_init(unsigned char* bytemap)
   return graph;
 }
 
+Queue* queue_init(Node* root)
+{
+  Queue* queue = malloc(sizeof(Queue));
+  if (!queue) return NULL;
+
+  queue -> head = root;
+  queue -> tail = root;
+  return queue;
+}
+
 ////////////////////////////
 //        Functions       //
 ////////////////////////////
@@ -69,18 +80,48 @@ void graph_append(Graph* graph, Node* parent, Node* node)
   graph -> count++;
 }
 
-/** Busca un path en DFS
- * Retorna el nodo en caso de encontrarlo
- * Sino, retorna NULL
+/** Retorna el primer elemento de la cola
+ * NULL en caso de una cola vacia
  */
-Node *graph_search(Node* node, char* path)
+static Node* deque(Queue* queue)
 {
-  if (strcmp(node -> path, path) == 0) return node;
+  if (!queue -> head) return NULL;
 
-  for (int i = 0; i < node -> count; i++) {
-    return graph_search(node -> childs[i], path);
+  Node *node = queue -> head;
+  queue -> head = node -> next;
+  return node;
+}
+
+/** Agrega un nodo a una cola */
+static void queue_append(Queue* queue, Node* node) 
+{
+  if (!queue -> head)
+  {
+    queue -> head = node;
+    queue -> tail = node;
+  } else
+  {
+    queue -> tail -> next = node;
+    queue -> tail = node;
   }
+}
 
+/** Busca en forma BFS un archivo o directorio y lo retorna */
+Node *graph_search(Node* root, char* path)
+{
+  Node* actual;
+  Queue* queue = queue_init(root);
+  while (queue -> head)
+  {
+    actual = deque(queue);
+    if (strcmp(actual -> path, path) == 0)
+    {
+      free(queue);
+      return actual;
+    }
+    for (int i = 0; i < actual -> count; i++) queue_append(queue, actual -> childs[i]);
+  }
+  free(queue);
   return NULL;
 }
 
