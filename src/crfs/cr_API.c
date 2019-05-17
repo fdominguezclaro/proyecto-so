@@ -8,6 +8,7 @@ char* DISK_PATH;
 void cr_mount(char* diskname)
 {
   DISK_PATH = diskname;
+  cr_ls("/root/SSBS.mp3");
 }
 
 /** Printea el bitmap, la cantidad de 1's y 0's */
