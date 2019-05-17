@@ -11,12 +11,22 @@ int main(int argc, char *argv[])
   cr_mount("disks/simdiskfilled.bin");
   
   /** DONE 
-   * cr_mount();
+   * cr_mount(char *diskname);
    * cr_bitmap();
+   * cr_ls("path");
   */
   
   /** TO DO
-   * cr_ls("path");
+   * cr_exist(char *path);
+   * cr_mkdir(char *foldername);
+   * cr_open(char *path, char mode);
+   * cr_read(crFILE *file_desc, void *buffer, int nbytes);
+   * cr_write(crFILE *file_desc, void *buffer, int nbytes);
+   * cr_close(crFILE *file_desc);
+   * cr_rm(char *path);
+   * cr_hardlink(char *orig, char *dest);
+   * cr_unload(char *orig, char *dest);
+   * cr_load(char *orig);
   */
 
   // crFILE* file_desc = cr_open("../../files/test.txt", 'w');
