@@ -1,13 +1,23 @@
 #pragma once
 #include "structs/structs.h"
 
+//////////////////////////
+//        Structs       //
+//////////////////////////
+
 /** Representa un archivo abierto */
 typedef struct FILE {
     Directory* directory;
 } crFILE;
 
+////////////////////////////////////
+//        Public Functions        //
+////////////////////////////////////
+
+/** Monta el disco */
 void cr_mount(char* diskname);
 
+/** Printea el bitmap, la cantidad de 1's y 0's */
 void cr_bitmap();
 
 int cr_exists(char* path);
