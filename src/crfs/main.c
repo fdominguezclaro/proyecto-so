@@ -9,7 +9,15 @@ int main(int argc, char *argv[])
 {
   // Se monta el disco.
   cr_mount("disks/simdiskfilled.bin");
-  cr_ls("path");
+  /** DONE 
+   * cr_mount();
+   * cr_bitmap();
+  */
+  
+  /** TO DO
+   * cr_ls("path");
+  */
+
   // crFILE* file_desc = cr_open("../../files/test.txt", 'w');
   // Suponga que abrio y leyo un archivo desde su computador
   // almacenando su contenido en un arreglo f, de 300 byte. cr_write(file_desc, f, 300);

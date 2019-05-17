@@ -9,13 +9,29 @@ unsigned int BLOCK_SIZE = 2048;
 
 extern char *DISK_PATH;
 
-static void printBits(unsigned char byte)
+/** Convierte un Byte a Bits y retorna la cantidad de 1's */
+int byteToBits(unsigned char byte)
 {
-	for (int bit = (sizeof(unsigned char) * 8); bit > 0; bit--)
+	/** Cuenta la cantidad de 1's */
+	int ones_counter = 0;
+
+	int aux;
+	int counter = 0;
+	char *binary_number = malloc(sizeof(unsigned char) * 9);
+	for (int bit = (sizeof(unsigned char) * 7); bit >= 0 ; bit--)
 	{
-		printf("%i ", byte & 0x01);
-		byte = byte >> 1;
+		aux = byte >> bit;
+		if (aux & 1) {
+			binary_number[counter] = 1 + '0';
+			ones_counter++;
+		}
+		else binary_number[counter] = 0 + '0';
+		counter++;
 	}
+	binary_number[counter] = '\0';
+	printf(binary_number);
+	free(binary_number);
+	return ones_counter;
 }
 
 /** true si el bloque es valido en el bitmap */
@@ -60,11 +76,9 @@ Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap)
 
 	unsigned int index = (unsigned int)buffer[30] * 256 + (unsigned int)buffer[31];
 
-
-	printf("Reading Entry N° %u, %s, %i\n", type, name, index);
-
-	if (type == (unsigned char)2) printf("DIR %s index: %u\n", name, index);
-	else if (type == (unsigned char)4) printf("FILE %s index: %u\n", name, index);
+	// printf("Reading Entry N° %u, %s, %i\n", type, name, index);
+	// if (type == (unsigned char)2) printf("DIR %s index: %u\n", name, index);
+	// else if (type == (unsigned char)4) printf("FILE %s index: %u\n", name, index);
 
 	return dir_parser_init(type, name, index);
 };
@@ -74,7 +88,7 @@ Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap)
  */
 Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 {
-	printf("\n---------------------\nREADING BLOCK %i\n", index);
+	// printf("\n---------------------\nREADING BLOCK %i\n", index);
 	FILE *file = fopen(DISK_PATH, "rb");
 	if (file == NULL) perror("Failed to open path");
 
