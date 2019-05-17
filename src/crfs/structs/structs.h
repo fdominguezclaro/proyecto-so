@@ -1,6 +1,19 @@
+#pragma once
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+//////////////////////////
+//        Structs       //
+//////////////////////////
+
+typedef struct dir_parser
+{
+  unsigned char type;
+  char* name;
+  unsigned int index;
+} Dir_parser;
 
 /** Representa un bloque de datos */
 typedef struct data
@@ -26,6 +39,10 @@ typedef struct directory
   bool is_file;
 } Directory;
 
+////////////////////////////////////
+//        Public Functions        //
+////////////////////////////////////
+
 Data* data_init();
 
 void data_destroy(Data* data);
@@ -37,3 +54,5 @@ void file_destroy(File* file);
 Directory* directory_init();
 
 void directory_destroy(Directory* directory);
+
+Dir_parser* dir_parser_init(unsigned char type, char* name, unsigned int index);
