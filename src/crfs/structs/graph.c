@@ -75,12 +75,15 @@ void graph_append(Graph* graph, Node* parent, Node* node)
  */
 Node *graph_search(Node* node, char* path)
 {
-  if (strcmp(node -> path, path) == 0) return node;
-
-  for (int i = 0; i < node -> count; i++) {
-    return graph_search(node -> childs[i], path);
+  Node *aux = node;
+  printf("Cantidad en %s: %i\n", node->name, node->count);
+  for (int i = 0; i < node -> count; i++)
+  {
+    printf("path: %s\n", node->childs[i]->path);
+    aux = graph_search(node -> childs[i], path);
+    if (!aux) return NULL;
+    if (strcmp(aux -> path, path) == 0) return node;    
   }
-
 }
 
 ////////////////////////////

@@ -8,7 +8,7 @@ char* DISK_PATH;
 void cr_mount(char* diskname)
 {
   DISK_PATH = diskname;
-  cr_ls("/root/SSBS.mp3");
+  cr_ls("/root/memes");
 }
 
 /** Printea el bitmap, la cantidad de 1's y 0's */
@@ -41,12 +41,12 @@ int cr_exists(char* path)
 void cr_ls(char* path)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
+  graph_printer(graph);
 
   Node *entry = graph_search(graph -> root, path);
   if (!entry) printf("Path inexistente\n");
   else {
-    printf("Directories and Files in %s:\n", path);
+    printf("Directories and Files in %s:\n", entry->name);
     for (int i = 0; i < entry -> count; i++) {
       if (i != entry -> count - 1) printf("%s, ", entry->childs[i] -> name);
       else printf("%s\n", entry->childs[i] -> name);
