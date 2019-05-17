@@ -7,6 +7,9 @@ char* DISK_PATH;
 void cr_mount(char* diskname)
 {
   DISK_PATH = diskname;
+  Graph* graph = load_disk();
+  graph_printer(graph);
+  graph_destroy(graph);
 }
 
 void cr_bitmap()

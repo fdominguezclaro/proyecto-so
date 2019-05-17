@@ -4,7 +4,7 @@
 #include "graph.h"
 #include "structs.h"
 
-Node* node_init(Dir_parser* dir_parser)
+Node* node_init(Dir_parser* dir_parser, char *parent_path)
 {
   Node* node = malloc(sizeof(Node));
 
@@ -12,6 +12,18 @@ Node* node_init(Dir_parser* dir_parser)
   node -> count = 0;
   node -> type = dir_parser -> type;
   node -> name = dir_parser -> name;
+
+  if (!parent_path) { 
+    node -> path = malloc(sizeof(char) * (strlen(node->name) + 2));
+    strcpy(node -> path, "/");
+    strcat(node -> path, node -> name);
+  }
+  else {
+    node -> path = malloc(sizeof(char) * (strlen(node->name) + strlen(parent_path) + 2));
+    strcpy(node -> path, parent_path);
+    strcat(node -> path, "/");
+    strcat(node -> path, node -> name);
+  }
   node -> index = dir_parser -> index;
 
   return node;
@@ -38,6 +50,7 @@ static void nodes_destroy(Node* node)
       nodes_destroy(node -> childs[i]);
     }
     free(node -> name);
+    free(node -> path);
     free(node -> childs);
     free(node);
   }
@@ -79,7 +92,7 @@ void node_printer(Node *node, int depth) {
         printf("--");
       }
       printf("> ");
-      printf("%s\n", node -> childs[i] -> name);
+      printf("%s\n", node -> childs[i] -> path);
       node_printer(node -> childs[i], depth + 1);
     }
   }
@@ -89,6 +102,6 @@ void node_printer(Node *node, int depth) {
 void graph_printer(Graph* graph)
 {
   int counter = 1;
-  printf("/%s\n", graph -> root -> name);
+  printf("%s\n", graph -> root -> path);
   node_printer(graph->root, counter);
 }

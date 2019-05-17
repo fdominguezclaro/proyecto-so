@@ -120,7 +120,7 @@ void load_dir(Graph *graph, Node *parent)
 		strcpy(root_name, "root");
 		dir_entries = read_dir_block(0, graph->bytemap);
 		Dir_parser *root_entry = dir_parser_init((unsigned char)2, root_name, 0);
-		parent = node_init(root_entry);
+		parent = node_init(root_entry, NULL);
 		free(root_entry);
 		// Agrego el nodo raiz
 		graph_append(graph, NULL, parent);
@@ -137,7 +137,7 @@ void load_dir(Graph *graph, Node *parent)
 		if (entry == NULL) continue;
 
 		// Creo un nuevo nodo
-		Node *node = node_init(dir_entries[i]);
+		Node *node = node_init(dir_entries[i], parent -> path);
 		free(dir_entries[i]);
 
 		// Llamado recursivo solo si es directorio y no es el padre

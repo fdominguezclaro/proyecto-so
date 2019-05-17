@@ -14,6 +14,7 @@ typedef struct node
   /** Lista de punteros de hijos */
   struct node** childs;
   char* name;
+  char* path;
   unsigned char type;
   unsigned int index;
   int count;
@@ -34,7 +35,7 @@ typedef struct graph
 /** Inicializa un arbol vacio que sera la estructura que representa los directorios */
 Graph* graph_init(unsigned char* bytemap);
 
-Node* node_init(Dir_parser* dir_parser);
+Node* node_init(Dir_parser* dir_parser, char *parent_path);
 
 /** Agrega un nodo (archivo o directorio) */
 void graph_append(Graph* graph, Node* parent, Node* node);
