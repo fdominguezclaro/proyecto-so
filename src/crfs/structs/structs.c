@@ -32,6 +32,9 @@ void directory_destroy(Directory* directory)
   free(directory);
 }
 
+/** Inicializa un Dir Parser
+ * Su funcionalidad esta mencionada en la definicion de la estructura
+ */
 Dir_parser* dir_parser_init(unsigned char type, char* name, unsigned int index)
 {
   Dir_parser* dir_parser = malloc(sizeof(Dir_parser));

@@ -4,14 +4,13 @@
 
 char* DISK_PATH;
 
+/** Monta el disco */
 void cr_mount(char* diskname)
 {
   DISK_PATH = diskname;
-  Graph* graph = load_disk();
-  graph_printer(graph);
-  graph_destroy(graph);
 }
 
+/** Printea el bitmap, la cantidad de 1's y 0's */
 void cr_bitmap()
 {
   Graph* graph = load_disk();
@@ -32,11 +31,27 @@ int cr_exists(char* path)
   graph_destroy(graph);
 }
 
+/** Recibe un string (alloc'd) y busca el path para imprimir su contenido
+ * char *string = malloc(sizeof(char) * 100);
+ * strcpy(string, "/root/thanos");
+ * cr_ls(string);
+ * free(string);
+*/
 void cr_ls(char* path)
 {
   Graph* graph = load_disk();
   // graph_printer(graph);
-  /** Work Here */
+
+  Node *entry = graph_search(graph -> root, path);
+  if (!entry) printf("Path inexistente\n");
+  else {
+    printf("Directories and Files in %s:\n", path);
+    for (int i = 0; i < entry -> count; i++) {
+      if (i != entry -> count - 1) printf("%s, ", entry->childs[i] -> name);
+      else printf("%s\n", entry->childs[i] -> name);
+    }
+  }
+
   graph_destroy(graph);
 }
 

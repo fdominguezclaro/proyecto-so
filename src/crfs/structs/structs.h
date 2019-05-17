@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+//////////////////////////
+//        Structs       //
+//////////////////////////
+
 typedef struct dir_parser
 {
   unsigned char type;
@@ -34,6 +38,10 @@ typedef struct directory
   File* file_pointer;
   bool is_file;
 } Directory;
+
+////////////////////////////////////
+//        Public Functions        //
+////////////////////////////////////
 
 Data* data_init();
 

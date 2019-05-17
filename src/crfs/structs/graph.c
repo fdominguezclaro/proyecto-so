@@ -4,6 +4,13 @@
 #include "graph.h"
 #include "structs.h"
 
+////////////////////////////
+//          Inits         //
+////////////////////////////
+
+/** Inicializa un nodo, le asigna su nombre respectivo y el path
+ * Importante recibir el path del padre... Para el root se recibe NULL
+ */
 Node* node_init(Dir_parser* dir_parser, char *parent_path)
 {
   Node* node = malloc(sizeof(Node));
@@ -41,6 +48,45 @@ Graph* graph_init(unsigned char* bytemap)
   return graph;
 }
 
+////////////////////////////
+//        Functions       //
+////////////////////////////
+
+/** Agrega un nodo (archivo o directorio) */
+void graph_append(Graph* graph, Node* parent, Node* node)
+{
+  if ((node -> index == 0) & !graph -> root)
+  {
+    graph -> root = node;
+  } else
+  {
+    parent -> childs[parent -> count] = node;
+    parent -> count++;
+    parent -> childs = (Node**) realloc(parent -> childs, sizeof(Node*) * (parent -> count + 1));
+  }
+
+  // Sumo 1 al numero de nodos
+  graph -> count++;
+}
+
+/** Busca un path en DFS
+ * Retorna el nodo en caso de encontrarlo
+ * Sino, retorna NULL
+ */
+Node *graph_search(Node* node, char* path)
+{
+  if (strcmp(node -> path, path) == 0) return node;
+
+  for (int i = 0; i < node -> count; i++) {
+    return graph_search(node -> childs[i], path);
+  }
+
+}
+
+////////////////////////////
+//          Frees         //
+////////////////////////////
+
 /** Funcion que libera recursivamente la memoria de la lista ligada */
 static void nodes_destroy(Node* node)
 {
@@ -56,24 +102,6 @@ static void nodes_destroy(Node* node)
   }
 }
 
-/** Agrega un nodo (archivo o directorio) */
-void graph_append(Graph* graph, Node* parent, Node* node)
-{
-  // printf("Name: %s\n", node -> name);
-  if ((node -> index == 0) & !graph -> root)
-  {
-    graph -> root = node;
-  } else
-  {
-    parent -> childs[parent -> count] = node;
-    parent -> count++;
-    parent -> childs = (Node**) realloc(parent -> childs, sizeof(Node*) * (parent -> count + 1));
-  }
-
-  // Sumo 1 al numero de nodos
-  graph -> count++;
-}
-
 /** Funcion que destruye la lista ligada liberando la memoria utilizada */
 void graph_destroy(Graph* graph)
 {
@@ -82,7 +110,12 @@ void graph_destroy(Graph* graph)
   free(graph);
 }
 
-void node_printer(Node *node, int depth) {
+////////////////////////////////
+//          Printers          //
+////////////////////////////////
+
+/** Imprime los nodos para aludir un arbol */
+static void node_printer(Node *node, int depth) {
   if (node)
   {
     for (int i = 0; i < node -> count; i++)

@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 {
   // Se monta el disco.
   cr_mount("disks/simdiskfilled.bin");
+  
   /** DONE 
    * cr_mount();
    * cr_bitmap();
