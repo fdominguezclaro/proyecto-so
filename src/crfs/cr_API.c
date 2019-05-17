@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "cr_API.h"
 #include "functions/functions.h"
 #include "structs/graph.h"

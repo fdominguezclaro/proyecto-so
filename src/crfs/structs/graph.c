@@ -20,7 +20,7 @@ Node* node_init(Dir_parser* dir_parser, char *parent_path)
   node -> type = dir_parser -> type;
   node -> name = dir_parser -> name;
 
-  if (!parent_path) { 
+  if (!parent_path) {
     node -> path = malloc(sizeof(char) * (strlen(node->name) + 2));
     strcpy(node -> path, "/");
     strcat(node -> path, node -> name);
@@ -81,6 +81,7 @@ Node *graph_search(Node* node, char* path)
     return graph_search(node -> childs[i], path);
   }
 
+  return NULL;
 }
 
 ////////////////////////////

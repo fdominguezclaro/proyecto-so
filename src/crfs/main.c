@@ -1,21 +1,36 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
+
 #include "structs/structs.h"
 #include "cr_API.h"
 
 
 int main(int argc, char *argv[])
 {
+  if (argc != 2)
+  {
+    printf("Modo de uso: ./crfs simdisk.bin\n");
+    return 0;
+  }
+
   // Se monta el disco.
-  cr_mount("disks/simdiskfilled.bin");
-  
-  /** DONE 
+  cr_mount(argv[1]);
+
+  char dir_path[100];
+  strcpy(dir_path, "/root");
+  cr_ls(dir_path);
+
+  // cr_bitmap();
+
+  /** DONE
    * cr_mount(char *diskname);
    * cr_bitmap();
    * cr_ls("path");
   */
-  
+
   /** TO DO
    * cr_exist(char *path);
    * cr_mkdir(char *foldername);

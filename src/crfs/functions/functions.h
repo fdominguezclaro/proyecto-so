@@ -10,3 +10,5 @@
  * Printea el número binario: Necesario para cr_bitmap()
  */
 int byteToBits(unsigned char byte);
+
+Graph *load_disk(void);
