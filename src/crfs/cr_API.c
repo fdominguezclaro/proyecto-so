@@ -1,15 +1,27 @@
 #include <stdio.h>
+#include <errno.h>
 
 #include "cr_API.h"
 #include "functions/functions.h"
 #include "structs/graph.h"
+
+extern int errno;
+int errnum;
 
 char* DISK_PATH;
 
 /** Monta el disco */
 void cr_mount(char* diskname)
 {
-  DISK_PATH = diskname;
+  FILE * pf;
+  pf = fopen (diskname, "rb");
+  if (pf == NULL) {
+    errnum = errno;
+    fprintf(stderr, "Error mounting disk: %s\n", strerror(errnum));
+  } else {
+    DISK_PATH = diskname;
+    fclose (pf);
+  }
 }
 
 /** Printea el bitmap, la cantidad de 1's y 0's */
@@ -41,9 +53,11 @@ void cr_ls(char* path)
   Graph* graph = load_disk();
   // graph_printer(graph);
   Node *entry = graph_search(graph -> root, path);
-  if (!entry) printf("Path inexistente\n");
-  else {
-    if (entry -> type == (unsigned char) 4) printf("%s es un archivo, no un directorio\n", path);
+  if (entry) {
+    if (entry -> type == (unsigned char) 4) {
+      errnum = ENOTDIR;
+      fprintf(stderr, "Error reading %s: %s\n", path, strerror(errnum));
+    }
     else {
       printf("Directorios y archivos en %s:\n", path);
       for (int i = 0; i < entry -> count; i++)

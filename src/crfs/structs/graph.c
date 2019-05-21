@@ -1,8 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "graph.h"
 #include "structs.h"
+
+extern int errno;
+int errnum;
 
 ////////////////////////////
 //          Inits         //
@@ -93,7 +97,7 @@ static Node* deque(Queue* queue)
 }
 
 /** Agrega un nodo a una cola */
-static void queue_append(Queue* queue, Node* node) 
+static void queue_append(Queue* queue, Node* node)
 {
   if (!queue -> head)
   {
@@ -111,6 +115,7 @@ Node *graph_search(Node* root, char* path)
 {
   Node* actual;
   Queue* queue = queue_init(root);
+
   while (queue -> head)
   {
     actual = deque(queue);
@@ -122,6 +127,8 @@ Node *graph_search(Node* root, char* path)
     for (int i = 0; i < actual -> count; i++) queue_append(queue, actual -> childs[i]);
   }
   free(queue);
+  errno = 2;
+  fprintf(stderr, "Error opening file: %s\n", strerror(errno));
   return NULL;
 }
 
