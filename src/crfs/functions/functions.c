@@ -153,3 +153,16 @@ Graph *load_disk(void)
 	load_dir(graph, NULL);
 	return graph;
 }
+
+/** Recorta un string insertando un caracter de termino
+ * Obtenido de: https://stackoverflow.com/questions/27414696/remove-last-four-characters-from-a-string-in-c
+*/
+void trim_end(char *str, int n)
+{
+	n = strlen(str) - n;
+
+	if (n < 0)
+		n = 0;
+
+	str[n] = '\0';
+}

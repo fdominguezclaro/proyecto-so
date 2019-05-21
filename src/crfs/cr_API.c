@@ -73,8 +73,30 @@ void cr_ls(char* path)
 int cr_mkdir(char *foldername)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
+
+  // Copia del str para poder modificarlo
+  char dir_copy[1000];
+	strcpy(dir_copy, foldername);
+
+  // Nombre del nuevo directorio
+  char *dir_name = strrchr(foldername, '/');
+
+  // Se guarda path del padre en dir_copy
+  int len_path = strlen(foldername);
+  int len_name = strlen(dir_name);
+  int len_parent = len_path - len_name - 3; // Le resto /root
+  trim_end(dir_copy, len_parent);
+
+  printf("Parent: %s\n", dir_copy);
+  printf("Foldername: %s\n", dir_name);
+
+  // Verifica si existe el path
+  Node *entry = graph_search(graph -> root, dir_copy);
+  if (!entry) return 0;
+
+  return 1;
+  // Creo el directorio
+
   graph_destroy(graph);
 }
 
