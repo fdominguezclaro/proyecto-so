@@ -94,8 +94,22 @@ int cr_mkdir(char *foldername)
   Node *entry = graph_search(graph -> root, dir_copy);
   if (!entry) return 0;
 
+  if (entry) {
+    // Si el arbol encuentra un archivo y no un directorio
+    if (entry -> type == (unsigned char) 4) {
+      errnum = ENOTDIR;
+      fprintf(stderr, "Error reading %s: %s\n", path, strerror(errnum));
+    }
+    else {
+      // Creo el directorio
+      unsigned int index = next_free_block(unsigned char *bytemap);
+      if (index == -1) return 0;
+
+
+    }
+  }
+
   return 1;
-  // Creo el directorio
 
   graph_destroy(graph);
 }

@@ -84,7 +84,6 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 {
 	// printf("\n---------------------\nREADING BLOCK %i\n", index);
 	FILE *file = fopen(DISK_PATH, "rb");
-	if (file == NULL) perror("Failed to open path");
 
 	unsigned char *buffer = malloc(sizeof(unsigned char) * 32);
 
@@ -165,4 +164,19 @@ void trim_end(char *str, int n)
 		n = 0;
 
 	str[n] = '\0';
+}
+
+int next_free_block(unsigned char *bytemap)
+{
+	unsigned int index = 0;
+
+	for (unsigned int index = 0; index < 65536; index++) {
+		if (bytemap[index] == 0) return index;
+	}
+
+	// No queda espacio en disco
+	errnum = ENOSPC;
+	fprintf(stderr, "Error writing to disk: %s\n", strerror(errnum));
+
+	return -1;
 }
