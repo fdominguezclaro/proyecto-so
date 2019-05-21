@@ -29,7 +29,9 @@ int cr_exists(char* path)
 {
   Graph* graph = load_disk();
   // graph_printer(graph);
-  /** Work Here */
+  Node *entry = graph_search(graph -> root, path);
+  if (!entry) return 0;
+  else return 1;
   graph_destroy(graph);
 }
 
