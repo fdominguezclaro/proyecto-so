@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include "../structs/graph.h"
 #include "../structs/structs.h"
+#include "functions.h"
 
 unsigned int BLOCK_SIZE = 2048;
+
+extern int errno;
+int errnum;
 
 extern char *DISK_PATH;
 
@@ -102,6 +107,27 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	return dir_parser;
 };
 
+/** Escribe un bloque de directorio en el disco */
+void write_dir_block(unsigned int index, Dir_parser* dir)
+{
+	int offset = next_free_entry(index);
+	if (offset == -1) return;
+
+	unsigned char zero = '\0';
+  unsigned char high = (unsigned char)(dir -> index >> 8);
+  unsigned char low  = dir -> index & 0xff;
+
+	FILE *file = fopen(DISK_PATH, "rb+");
+	fseek(file, (unsigned int)((BLOCK_SIZE * index) + offset), SEEK_SET);
+	fwrite(&dir -> type, sizeof(unsigned char), 1, file);
+	fwrite(dir -> name, sizeof(unsigned char) * strlen(dir -> name), 1, file);
+	for (int i = 0; i < 29 - strlen(dir -> name); i++) fwrite(&zero, sizeof(unsigned char), 1, file);
+	fwrite(&high, sizeof(unsigned char), 1, file);
+	fwrite(&low, sizeof(unsigned char), 1, file);
+	fclose(file);
+
+}
+
 /** Lee los directorios de manera recursiva DFS */
 static void load_dir(Graph *graph, Node *parent)
 {
@@ -114,7 +140,7 @@ static void load_dir(Graph *graph, Node *parent)
 		dir_entries = read_dir_block(0, graph->bytemap);
 		Dir_parser *root_entry = dir_parser_init((unsigned char) 2, root_name, 0);
 		parent = node_init(root_entry, NULL);
-		free(root_entry);
+		dir_parser_destroy(root_entry);
 		// Agrego el nodo raiz
 		graph_append(graph, NULL, parent);
 	}
@@ -131,7 +157,7 @@ static void load_dir(Graph *graph, Node *parent)
 
 		// Creo un nuevo nodo
 		Node *node = node_init(dir_entries[i], parent -> path);
-		free(dir_entries[i]);
+		dir_parser_destroy(dir_entries[i]);
 
 		// Llamado recursivo solo si es directorio y no es el padre
 		if (node->type == (unsigned char) 2) load_dir(graph, node);
@@ -166,17 +192,71 @@ void trim_end(char *str, int n)
 	str[n] = '\0';
 }
 
+/** Busca el siguiente bloque libre en el bitmap */
 int next_free_block(unsigned char *bytemap)
 {
-	unsigned int index = 0;
+	for (unsigned int index = 0; index < 8192; index++) {
 
-	for (unsigned int index = 0; index < 65536; index++) {
-		if (bytemap[index] == 0) return index;
+		int aux;
+		for (int bit = (sizeof(unsigned char) * 7); bit >= 0 ; bit--)
+		{
+			aux = bytemap[index] >> bit;
+			if (aux & 1) continue;
+			else {
+				return (index * 8) + 7 - bit;
+			}
+		}
 	}
 
 	// No queda espacio en disco
 	errnum = ENOSPC;
 	fprintf(stderr, "Error writing to disk: %s\n", strerror(errnum));
 
-	return -1;
+	return 0;
+}
+
+/** Busca la siguiente entrada valida en un bloque de directorio */
+int next_free_entry(unsigned int index)
+{
+	FILE *file = fopen(DISK_PATH, "rb");
+	unsigned char *buffer = malloc(sizeof(unsigned char) * 32);
+	int offset = -1;
+	unsigned char type;
+	// Lee un bloque completo
+	for (int i = 0; i < 64; i++)
+	{
+		fseek(file, (32 * i) + ((unsigned int)((index) * BLOCK_SIZE)), SEEK_SET);
+		fread(buffer, sizeof(unsigned char), 32, file);
+		type = buffer[0];
+
+		// Si es un bloque invalido lo guardo
+		if (type == (unsigned char) 1) {
+			offset = i * 32;
+			break;
+		}
+	};
+
+	// No encontro ningun bloque invalido
+	if (offset == -1) fprintf(stderr, "Error: No space extra in directory\n");
+
+	free(buffer);
+	fclose(file);
+
+	return offset;
+}
+
+void write_bitmap(unsigned int index, unsigned int value) {
+	unsigned char *byte = malloc(sizeof(unsigned char));
+	int offset = 7 - index % 8;
+
+	FILE *file = fopen(DISK_PATH, "rb+");
+	fseek(file, BLOCK_SIZE + index / 8, SEEK_SET);
+	fread(byte, sizeof(unsigned char), 1, file);
+
+	byte[0] ^= (1u << offset);
+	fseek(file, BLOCK_SIZE + index / 8, SEEK_SET);
+	fwrite(byte, sizeof(unsigned char), 1, file);
+
+	free(byte);
+	fclose(file);
 }

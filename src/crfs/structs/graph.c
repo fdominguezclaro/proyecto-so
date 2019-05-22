@@ -127,8 +127,6 @@ Node *graph_search(Node* root, char* path)
     for (int i = 0; i < actual -> count; i++) queue_append(queue, actual -> childs[i]);
   }
   free(queue);
-  errno = 2;
-  fprintf(stderr, "Error opening file: %s\n", strerror(errno));
   return NULL;
 }
 
