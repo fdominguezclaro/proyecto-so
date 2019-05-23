@@ -17,6 +17,7 @@ typedef struct node
 
   // Lista de punteros de hijos
   struct node** childs;
+  struct node* parent;
   char* name;
   char* path;
   // For BFS in case of needed: Never use free(node -> next);
@@ -24,6 +25,7 @@ typedef struct node
   unsigned char type;
   unsigned int index;
   int count;
+  int offset;
 } Node;
 
 /** Estructura de un grafo. Referencia a los extremos y mantiene un
@@ -59,7 +61,7 @@ Queue* queue_init(Node* root);
 /** Agrega un nodo (archivo o directorio) */
 void graph_append(Graph* graph, Node* parent, Node* node);
 
-/** Busca en forma BFS un archivo o directorio y lo retorna 
+/** Busca en forma BFS un archivo o directorio y lo retorna
  * Retorna NULL si no lo encuentra
 */
 Node* graph_search(Node* root, char* path);

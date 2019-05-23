@@ -7,7 +7,7 @@
 
 /** Representa un archivo abierto */
 typedef struct FILE {
-    Directory* directory;
+    Dir_parser* directory;
 } crFILE;
 
 ////////////////////////////////////

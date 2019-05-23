@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <math.h>
 
 #include "../structs/graph.h"
 #include "../structs/structs.h"
@@ -36,7 +37,7 @@ int byteToBits(unsigned char byte)
 		counter++;
 	}
 	binary_number[counter] = '\0';
-	printf("%s", binary_number);
+	// printf("%s", binary_number);
 	free(binary_number);
 	return ones_counter;
 }
@@ -64,7 +65,7 @@ static unsigned char *load_bitmap(void)
 }
 
 /** Encargado de leer una entrada de un bloque y verificar el tipo de entrada */
-static Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap)
+static Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap, int offset)
 {
 	unsigned char type = buffer[0];
 	if (type == (unsigned char) 1) return NULL;
@@ -79,7 +80,7 @@ static Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap)
 	// if (type == (unsigned char) 2) printf("DIR %s index: %u\n", name, index);
 	// else if (type == (unsigned char) 4) printf("FILE %s index: %u\n", name, index);
 
-	return dir_parser_init(type, name, index);
+	return dir_parser_init(type, name, index, offset);
 };
 
 /** Lee un bloque de directorio en el indice index
@@ -99,7 +100,7 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	{
 		fseek(file, (32 * i) + ((unsigned int)((index) * BLOCK_SIZE)), SEEK_SET);
 		fread(buffer, sizeof(unsigned char), 32, file);
-		dir_parser[i] = read_entry(buffer, bytemap);
+		dir_parser[i] = read_entry(buffer, bytemap, i * 32);
 	};
 
 	free(buffer);
@@ -138,7 +139,7 @@ static void load_dir(Graph *graph, Node *parent)
 		char *root_name = malloc(sizeof(char) * 5);
 		strcpy(root_name, "root");
 		dir_entries = read_dir_block(0, graph->bytemap);
-		Dir_parser *root_entry = dir_parser_init((unsigned char) 2, root_name, 0);
+		Dir_parser *root_entry = dir_parser_init((unsigned char) 2, root_name, 0, 0);
 		parent = node_init(root_entry, NULL);
 		dir_parser_destroy(root_entry);
 		// Agrego el nodo raiz
@@ -245,7 +246,8 @@ int next_free_entry(unsigned int index)
 	return offset;
 }
 
-void write_bitmap(unsigned int index, unsigned int value) {
+void write_bitmap(unsigned int index, unsigned int value)
+{
 	unsigned char *byte = malloc(sizeof(unsigned char));
 	int offset = 7 - index % 8;
 
@@ -253,10 +255,85 @@ void write_bitmap(unsigned int index, unsigned int value) {
 	fseek(file, BLOCK_SIZE + index / 8, SEEK_SET);
 	fread(byte, sizeof(unsigned char), 1, file);
 
-	byte[0] ^= (1u << offset);
+	if (value == 1) byte[0] |= (1u << offset);
+	else byte[0] &= ~(1u << offset);
+
 	fseek(file, BLOCK_SIZE + index / 8, SEEK_SET);
 	fwrite(byte, sizeof(unsigned char), 1, file);
 
 	free(byte);
 	fclose(file);
 }
+
+/** Escribe un byte en el bloque index y el offset dado */
+void write_byte(unsigned int index, int offset, unsigned char value)
+{
+	unsigned char *byte = malloc(sizeof(unsigned char));
+	byte[0] = value;
+
+	FILE *file = fopen(DISK_PATH, "rb+");
+	fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
+
+	fwrite(byte, sizeof(unsigned char), 1, file);
+
+	free(byte);
+	fclose(file);
+}
+
+/** Escribe 4 bytes en el bloque index y el offset dado */
+void write_4bytes(unsigned int index, int offset, unsigned int value)
+{
+	unsigned int *byte = malloc(sizeof(unsigned int));
+	byte[0] = value;
+
+	FILE *file = fopen(DISK_PATH, "rb+");
+	fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
+
+	fwrite(byte, sizeof(unsigned int), 1, file);
+
+	free(byte);
+	fclose(file);
+}
+
+/** Lee y retorna un bloque indice */
+Index_block *read_index_block(unsigned int index)
+{
+	FILE *file = fopen(DISK_PATH, "rb");
+
+	unsigned char *buffer = malloc(sizeof(unsigned char) * 2048);
+
+	fseek(file, (unsigned int)(index * BLOCK_SIZE), SEEK_SET);
+	fread(buffer, sizeof(unsigned char), 2048, file);
+
+	unsigned int p0 = (unsigned int) pow(2, 32);
+	unsigned int p1 = (unsigned int) pow(2, 16);
+	unsigned int p2 = (unsigned int) pow(2, 8);
+
+	unsigned int size = (unsigned int)buffer[0] * p0 + (unsigned int)buffer[1] * p1 + (unsigned int)buffer[2] * p2 + (unsigned int)buffer[3];
+	unsigned int n_hardlinks = (unsigned int)buffer[4] * p0 + (unsigned int)buffer[5] * p1 + (unsigned int)buffer[6] * p2 + (unsigned int)buffer[7];
+
+	unsigned int *data_pointers = malloc(sizeof(unsigned int) * 500);
+	unsigned int *indirect_blocks = malloc(sizeof(unsigned int) * 10);
+	unsigned int ptr;
+
+	// Lee los 500 punteros de direccionamiento directo
+	for (int i = 8; i < 2008; i += 4)
+	{
+	 	ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
+		data_pointers[(i - 8) / 4] = ptr;
+	};
+
+	// Lee los 10 punteros de direccionamiento indirecto
+	for (int i = 2008; i < 2048; i += 4)
+	{
+		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
+		indirect_blocks[(i - 2008) / 4] = ptr;
+	};
+
+	Index_block * index_block = iblock_init(size, n_hardlinks, data_pointers, indirect_blocks);
+
+	free(buffer);
+	fclose(file);
+
+	return index_block;
+};

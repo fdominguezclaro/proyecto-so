@@ -125,7 +125,7 @@ int cr_mkdir(char *foldername)
     if (index == 0) return 0;
 
     // Escribo el directorio en el disco
-    Dir_parser* dir_block = dir_parser_init(2, dir_name, index);
+    Dir_parser* dir_block = dir_parser_init(2, dir_name, index, 0);
     write_dir_block(parent -> index, dir_block);
     write_bitmap(index, 1);
 
@@ -176,9 +176,39 @@ int cr_close(crFILE* file_desc)
 int cr_rm(char* path)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
+
+  Node *entry = graph_search(graph -> root, path);
+  // El archivo no existe
+  if (!entry) {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return 0;
+  }
+
+  Index_block *iblock = read_index_block(entry -> index);
+
+  // Su entrada queda invalida
+  write_byte(entry -> parent -> index, entry -> offset, (unsigned char) 1);
+
+  // Si tiene mas hardlinks
+  printf("HARDLINKS: %i\n", iblock -> n_hardlinks);
+
+  if (iblock -> n_hardlinks > 1) {
+    // Restamos un hardlink
+    write_4bytes(entry -> index, 4, iblock -> n_hardlinks - 1);
+  } else {
+    // Lo borro del bitmap
+    write_bitmap(entry -> index, 0);
+    // Borramos el directorio y los bloques de datos
+    for (int i = 0; i < 500; i++) write_bitmap(iblock -> data_pointers[i], 0);
+    for (int i = 0; i < 10; i++) write_bitmap(iblock -> indirect_blocks[i], 0);
+  }
+
+  iblock_destroy(iblock);
   graph_destroy(graph);
+
+  return 1;
 }
 
 int cr_hardlink(char* orig, char* dest)

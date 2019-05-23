@@ -35,6 +35,7 @@ Node* node_init(Dir_parser* dir_parser, char *parent_path)
     strcpy(node -> path, parent_path);
     strcat(node -> path, "/");
     strcat(node -> path, node -> name);
+    node -> offset = dir_parser -> offset;
   }
   node -> index = dir_parser -> index;
 
@@ -78,6 +79,7 @@ void graph_append(Graph* graph, Node* parent, Node* node)
     parent -> childs[parent -> count] = node;
     parent -> count++;
     parent -> childs = (Node**) realloc(parent -> childs, sizeof(Node*) * (parent -> count + 1));
+    node -> parent = parent;
   }
 
   // Sumo 1 al numero de nodos

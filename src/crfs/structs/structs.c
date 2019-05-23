@@ -10,38 +10,35 @@ void data_destroy(Data* data){
   free(data);
 }
 
-File* file_init()
+Index_block* iblock_init(uint32_t size, uint32_t n_hardlinks, unsigned int * data_pointers, unsigned int * indirect_blocks)
 {
-  File* file = malloc(sizeof(File));
-  return file;
+  Index_block* iblock = malloc(sizeof(Index_block));
+  iblock -> size = size;
+  iblock -> n_hardlinks = n_hardlinks;
+  iblock -> data_pointers = data_pointers;
+  iblock -> indirect_blocks = indirect_blocks;
+
+  return iblock;
 }
 
-void file_destroy(File* file)
+void iblock_destroy(Index_block* iblock)
 {
-  free(file);
-}
-
-Directory* directory_init(void)
-{
-  Directory* directory = malloc(sizeof(Directory));
-  return directory;
-}
-
-void directory_destroy(Directory* directory)
-{
-  free(directory);
+  free(iblock -> data_pointers);
+  free(iblock -> indirect_blocks);
+  free(iblock);
 }
 
 /** Inicializa un Dir Parser
  * Su funcionalidad esta mencionada en la definicion de la estructura
  */
-Dir_parser* dir_parser_init(unsigned char type, char* name, unsigned int index)
+Dir_parser* dir_parser_init(unsigned char type, char* name, unsigned int index, int offset)
 {
   Dir_parser* dir_parser = malloc(sizeof(Dir_parser));
 
   dir_parser -> type = type;
   dir_parser -> name = name;
   dir_parser -> index = index;
+  dir_parser -> offset = offset;
 
   return dir_parser;
 }
