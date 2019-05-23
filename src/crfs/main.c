@@ -18,15 +18,11 @@ int main(int argc, char *argv[])
 
   // Se monta el disco.
   cr_mount(argv[1]);
-  cr_ls("/root");
 
-  crFILE *file2 = cr_open("/root/hey.mkv", 'r');
-  
-  crFILE_printer(file2);
-
-  if (file2) crFILE_destroy(file2);
-
-  cr_ls("/root");
+  int r;
+  // cr_mkdir("/root/memes/hola/hele");
+  cr_hardlink("/root/memes/sudo2.jpg", "/root/hey/so/pain/new_hl.jpg");
+  cr_ls("/root/hey/so/pain");
 
   // cr_bitmap();
 

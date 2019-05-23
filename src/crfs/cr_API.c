@@ -111,6 +111,7 @@ int cr_mkdir(char *foldername)
   Graph* graph = load_disk();
 
   Node *aux = graph_search(graph -> root, foldername);
+  // Si ya existe le directorio
   if (aux) {
     errnum = EEXIST;
     fprintf(stderr, "Error: %s: %s\n", foldername, strerror(errnum));
@@ -134,10 +135,10 @@ int cr_mkdir(char *foldername)
   Node *parent = graph_search(graph -> root, dir_copy);
 
   if (!parent) {
-    errno = 2;
-    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    cr_mkdir(dir_copy);
+    graph = load_disk();
+    parent = graph_search(graph -> root, dir_copy);
   }
 
   // Si el arbol encuentra un archivo y no un directorio
@@ -280,8 +281,6 @@ int cr_rm(char* path)
   write_byte(entry -> parent -> index, entry -> offset, (unsigned char) 1);
 
   // Si tiene mas hardlinks
-  printf("HARDLINKS: %i\n", iblock -> n_hardlinks);
-
   if (iblock -> n_hardlinks > 1) {
     // Restamos un hardlink
     write_4bytes(entry -> index, 4, iblock -> n_hardlinks - 1);
@@ -302,9 +301,71 @@ int cr_rm(char* path)
 int cr_hardlink(char* orig, char* dest)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
+
+  Node *entry = graph_search(graph -> root, orig);
+  Node *aux_err = graph_search(graph -> root, dest);
+
+  // El destino ya existe
+  if (aux_err) {
+    errno = EEXIST;
+    fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return 0;
+  }
+  // No existe el origen
+  if (!entry) {
+    errno = 2;
+    fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return 0;
+  }
+  // El origen es un directorio
+  else if (entry -> type == (unsigned char) 2) {
+    errno = EISDIR;
+    fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return 0;
+  }
+  else {
+    // Copia del str para poder modificarlo
+    char dir_copy[1000];
+    strcpy(dir_copy, dest);
+
+    // Nombre del nuevo directorio
+    char *dir_name = strrchr(dest, '/');
+    dir_name++; // Le saco el / del comienzo
+    int len_name = strlen(dir_name) - 1;
+
+    // Se guarda path del padre en dir_copy
+    trim_end(dir_copy, len_name + 2);
+
+    Node *dest_parent = graph_search(graph -> root, dir_copy);
+
+    // Si existen carpetas que aun no se han creado las creo recursivamente
+    if (!dest_parent) {
+      graph_destroy(graph);
+      cr_mkdir(dir_copy);
+      graph = load_disk();
+      dest_parent = graph_search(graph -> root, dir_copy);
+      entry = graph_search(graph -> root, orig);
+      aux_err = graph_search(graph -> root, dest);
+    }
+
+    // Nuevo hardlink
+    Dir_parser* hl_block = dir_parser_init(4, dir_name, entry -> index, 0);
+    write_dir_block(dest_parent -> index, hl_block);
+
+    // Se lee el bloque indice
+    Index_block *iblock = read_index_block(entry -> index);
+    // Sumarle 1 a los hardlinks
+    write_4bytes(entry -> index, 4, iblock -> n_hardlinks + 1);
+
+    iblock_destroy(iblock);
+
+    dir_parser_destroy(hl_block);
+    graph_destroy(graph);
+    return 1;
+  }
 }
 
 int cr_unload(char* orig, char* dest)
