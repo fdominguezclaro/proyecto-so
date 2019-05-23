@@ -25,8 +25,8 @@ typedef struct data
 /** Representa un bloque de indice */
 typedef struct index_block
 {
-  uint32_t size;
-  uint32_t n_hardlinks;
+  unsigned int size;
+  unsigned int n_hardlinks;
   unsigned int* data_pointers;
   unsigned int* indirect_blocks;
 } Index_block;

@@ -20,12 +20,9 @@ int main(int argc, char *argv[])
   cr_mount(argv[1]);
 
   int r;
-  cr_ls("/root");
-  r = cr_exists("/root/memes/casos borde.jpg");
-  r = cr_mkdir("/root/chupalo");
-  cr_ls("/root");
-
-
+  // cr_mkdir("/root/memes/hola/hele");
+  cr_hardlink("/root/memes/sudo2.jpg", "/root/hey/so/pain/new_hl.jpg");
+  cr_ls("/root/hey/so/pain");
   // cr_bitmap();
 
   /** DONE
@@ -34,6 +31,8 @@ int main(int argc, char *argv[])
    * cr_ls("path");
    * cr_exists(char *path);
    * cr_mkdir(char *foldername);
+   * cr_rm(char *path);
+   * cr_hardlink(char *orig, char *dest);
   */
 
   /** TO DO
@@ -41,8 +40,6 @@ int main(int argc, char *argv[])
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_close(crFILE *file_desc);
-   * cr_rm(char *path);
-   * cr_hardlink(char *orig, char *dest);
    * cr_unload(char *orig, char *dest);
    * cr_load(char *orig);
   */
