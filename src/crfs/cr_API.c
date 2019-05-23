@@ -44,6 +44,7 @@ void cr_mount(char* diskname)
   if (pf == NULL) {
     errnum = errno;
     fprintf(stderr, "Error mounting disk: %s\n", strerror(errnum));
+    exit(errnum);
   } else {
     DISK_PATH = diskname;
     fclose (pf);
@@ -181,56 +182,64 @@ crFILE* cr_open(char* path, char mode)
   Graph* graph = load_disk();
   Node *entry = graph_search(graph -> root, path);
 
-  if (!entry) {
-    if (mode == 'w') {  // Create a crFILE
-      char dir_copy[1000];
-      strcpy(dir_copy, path);
-      char *dir_name = strrchr(path, '/');
-      dir_name++;  // Le saco el / del comienzo
-      int len_name = strlen(dir_name) - 1;
-      trim_end(dir_copy, len_name + 2);
-
-      Node *parent = graph_search(graph -> root, dir_copy);
-      if (!parent) {
-        errno = 2;
-        fprintf(stderr, "Error opening file: %s\n", strerror(errno));
-        graph_destroy(graph);
-        return 0;
-      } else if (parent -> type == (unsigned char) 4) {
-        errnum = ENOTDIR;
-        fprintf(stderr, "Error reading: %s\n", strerror(errnum));
-        graph_destroy(graph);
-        return 0;
-      }
-
-      unsigned int index = next_free_block(graph -> bytemap);
-      if (index == 0) {
-        graph_destroy(graph);
-        return 0;
-      }
-      directory = dir_parser_init(4, dir_name, index, 0);
-      write_dir_block(parent -> index, directory);
-      write_bitmap(index, 1);
-      iblock = read_index_block(directory -> index);
-
-    } else {  // Cannot read an inexisting file
-      errno = 2;
-      fprintf(stderr, "Error opening file: %s\n", strerror(errno));
-      graph_destroy(graph);
-      return NULL;
-    }
-
-  } else if (entry -> type != (unsigned char) 4) {  // Cannot open a directory
+  if (!entry && mode == 'r') {  // Cannot read an inexisting FILE
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return NULL;
+  } else if (entry && entry -> type != (unsigned char) 4) {  // Cannot open a directory
     fprintf(stderr, "Error opening file: %s is a directory, not a file\n", path);
     graph_destroy(graph);
     return NULL;
+  } else if (mode == 'w') {  // Create a crFILE
+    if (entry) {  // Delete FILE only if exists
+      cr_rm(path);
+    }
+    char dir_copy[1000];
+    strcpy(dir_copy, path);
+    char *dir_name = strrchr(path, '/');
+    dir_name++;  // Le saco el / del comienzo
+    int len_name = strlen(dir_name) - 1;
+    trim_end(dir_copy, len_name + 2);
 
-  } else {  // Find the FILE and ínstance a crFILE
+    Node *parent = graph_search(graph -> root, dir_copy);
+    if (!parent) {
+      errno = 2;
+      fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+      graph_destroy(graph);
+      return 0;
+    } else if (parent -> type == (unsigned char) 4) {
+      errnum = ENOTDIR;
+      fprintf(stderr, "Error reading: %s\n", strerror(errnum));
+      graph_destroy(graph);
+      return 0;
+    }
+
+    unsigned int index = next_free_block(graph -> bytemap);
+    if (index == 0) {
+      graph_destroy(graph);
+      return 0;
+    }
+    unsigned int offset = next_free_entry(index);
+    if (offset == -1) {
+      graph_destroy(graph);
+      return 0;
+    }
+
+    // Deberian tener el mismo offset al llamar al next_free_entry(index)
+    directory = dir_parser_init(4, dir_name, index, offset);
+    write_dir_block(parent -> index, directory);
+
+    iblock = iblock_init(0, 1, NULL, NULL);
+    write_index_block(directory -> index, iblock, offset);
+    write_bitmap(directory -> index, 1);
+
+  } else {  // Find the FILE and instance a crFILE
     directory = malloc(sizeof(Dir_parser));
     directory -> type = entry -> type;
-    directory -> index = entry -> index;
     directory -> offset = entry -> offset;
-    iblock = read_index_block(entry -> index);
+    directory -> index = entry -> index;
+    iblock = read_index_block(directory -> index);
   }
 
   cr_file = crFILE_init(directory, iblock, (unsigned char) mode, path);
@@ -416,9 +425,15 @@ void crFILE_printer(crFILE *cr_file)
     cr_file->directory->offset, cr_file->directory->type);
   
   puts("iblock");
-  printf("DP: %u | IB: %u | nh: %u | Size: %u",
-    cr_file->iblock->data_pointers, cr_file->iblock->indirect_blocks,
-    cr_file->iblock->n_hardlinks, cr_file->iblock->size);
-
+  printf("nh: %u | Size: %u | Data Pointers: ",
+          cr_file->iblock->n_hardlinks, cr_file->iblock->size);
+  for (int i = 0; i < 500; i++) {
+    if (i != 499) printf("%u, ", cr_file->iblock->data_pointers[i]);
+    else printf("%u | Indirect Blocks: ", cr_file->iblock->data_pointers[i]);
+  }
+  for (int i = 0; i < 10; i++) {
+    if (i != 9) printf("%u, ", cr_file->iblock->indirect_blocks[i]);
+    else printf("%u", cr_file->iblock->indirect_blocks[i]);
+  }
   puts("\n--------------");
 }
