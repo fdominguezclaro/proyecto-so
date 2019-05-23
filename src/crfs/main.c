@@ -19,21 +19,7 @@ int main(int argc, char *argv[])
   // Se monta el disco.
   cr_mount(argv[1]);
   cr_ls("/root");
-  crFILE *file2 = cr_open("/root/Program in C.mkv", 'r');
-  
-  printf("Directory:\n");
-  printf("Name: %s | type: %u | index: %u | offset: %u\n", 
-  file2->directory->name,
-  file2->directory->type,
-  file2->directory->index,
-  file2->directory->offset);
-
-  printf("iblock:\n");
-  printf("Size: %u | nhls: %u | dp: %u | ib: %u\n", 
-  file2->iblock->size,
-  file2->iblock->n_hardlinks,
-  *file2->iblock->data_pointers,
-  *file2->iblock->indirect_blocks);
+  crFILE *file2 = cr_open("/root/Program in C.mkv", 'w');
 
   crFILE_destroy(file2);
   // cr_bitmap();

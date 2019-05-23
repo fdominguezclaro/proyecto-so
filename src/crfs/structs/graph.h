@@ -1,5 +1,6 @@
 // Estructuras obtenidas del taller 0 de EDD
 #pragma once
+
 #include "structs.h"
 #include <string.h>
 

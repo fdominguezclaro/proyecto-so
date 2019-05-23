@@ -9,8 +9,9 @@
 typedef struct FILE {
     Dir_parser *directory;
     Index_block *iblock;
-    // if type == 0 -> read mode, else write mode
-    unsigned int type;
+    // if mode == 0 -> read mode, else write mode
+    unsigned char mode;
+    char *path;
 } crFILE;
 
 ////////////////////////////////////

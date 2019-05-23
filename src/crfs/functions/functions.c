@@ -203,9 +203,7 @@ int next_free_block(unsigned char *bytemap)
 		{
 			aux = bytemap[index] >> bit;
 			if (aux & 1) continue;
-			else {
-				return (index * 8) + 7 - bit;
-			}
+			else return (index * 8) + 7 - bit;
 		}
 	}
 
