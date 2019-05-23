@@ -46,4 +46,6 @@ int cr_unload(char* orig, char* dest);
 
 int cr_load(char* orig);
 
+void crFILE_printer(crFILE *cr_file);
+
 void crFILE_destroy(crFILE *cr_file);

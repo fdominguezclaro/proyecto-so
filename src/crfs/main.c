@@ -19,9 +19,15 @@ int main(int argc, char *argv[])
   // Se monta el disco.
   cr_mount(argv[1]);
   cr_ls("/root");
-  crFILE *file2 = cr_open("/root/Program in C.mkv", 'w');
 
-  crFILE_destroy(file2);
+  crFILE *file2 = cr_open("/root/hey.mkv", 'r');
+  
+  crFILE_printer(file2);
+
+  if (file2) crFILE_destroy(file2);
+
+  cr_ls("/root");
+
   // cr_bitmap();
 
   /** DONE
@@ -32,10 +38,10 @@ int main(int argc, char *argv[])
    * cr_mkdir(char *foldername);
    * cr_rm(char *path);
    * cr_hardlink(char *orig, char *dest);
+   * cr_open(char *path, char mode);
   */
 
   /** TO DO
-   * cr_open(char *path, char mode);
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_close(crFILE *file_desc);
