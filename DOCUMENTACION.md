@@ -38,7 +38,7 @@ Para poder acceder a las funciones que se describirán a continuación es necesa
 3. `int cr_exists(char* path)`
     * Función para ver si un archivo o carpeta existe en la ruta especificada por `path`.
     * Retorna 1 si el archivo o carpeta existe.
-    * En caso de que no exista, se retorna 0 junto con la impresión de ` correspondiente a _"No such file or directory"_.
+    * En caso de que no exista, se retorna 0 junto con la impresión de `errno` correspondiente a _"No such file or directory"_.
 
 4. `void cr_ls(char* path)`
     * Lista los elementos de un directorio del disco, mostrando los nombres de todos los archivos y directorios contenidos en el directorio indicado por `path`.
