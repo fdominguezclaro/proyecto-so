@@ -7,6 +7,7 @@
 #include "../structs/graph.h"
 #include "../structs/structs.h"
 #include "functions.h"
+#include "../cr_API.h"
 
 unsigned int BLOCK_SIZE = 2048;
 
@@ -68,7 +69,7 @@ static unsigned char *load_bitmap(void)
 static Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap, int offset)
 {
 	unsigned char type = buffer[0];
-	if (type == (unsigned char) 1) return NULL;
+	if ((type != (unsigned char) 2) && (type != (unsigned char) 4)) return NULL;
 
 	char *aux_name = (char *) (buffer + 1);
 	char *name = malloc(sizeof(char) * (strlen(aux_name) + 1));
@@ -231,7 +232,7 @@ int next_free_entry(unsigned int index)
 		type = buffer[0];
 
 		// Si es un bloque invalido lo guardo
-		if (type == (unsigned char) 1) {
+		if (type != (unsigned char) 2 && type != (unsigned char) 4) {
 			offset = i * 32;
 			break;
 		}
@@ -283,15 +284,22 @@ void write_byte(unsigned int index, int offset, unsigned char value)
 /** Escribe 4 bytes en el bloque index y el offset dado */
 void write_4bytes(unsigned int index, int offset, unsigned int value)
 {
-	unsigned int *byte = malloc(sizeof(unsigned int));
-	byte[0] = value;
+	unsigned char bytes[4];
+	bytes[0] = (value >> 24) & 0xFF;
+	bytes[1] = (value >> 16) & 0xFF;
+	bytes[2] = (value >> 8) & 0xFF;
+	bytes[3] = value & 0xFF;
+
+	// unsigned char *byte = malloc(sizeof(unsigned char) * 4);
+	// byte[0] = value;
+	// printf("VALUE %s\n", bytes);
 
 	FILE *file = fopen(DISK_PATH, "rb+");
 	fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
 
-	fwrite(byte, sizeof(unsigned int), 1, file);
+	fwrite(bytes, sizeof(unsigned char), 4, file);
 
-	free(byte);
+	// free(byte);
 	fclose(file);
 }
 
