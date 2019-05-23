@@ -17,8 +17,8 @@ char* DISK_PATH;
 static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned char mode, char *path)
 {
   crFILE *cr_file = malloc(sizeof(crFILE));
-  
-  
+
+
   cr_file -> mode = mode;
   cr_file -> iblock = iblock;
   cr_file -> path = malloc(sizeof(char) * (strlen(path) + 1));
@@ -204,10 +204,10 @@ crFILE* cr_open(char* path, char mode)
 
     Node *parent = graph_search(graph -> root, dir_copy);
     if (!parent) {
-      errno = 2;
-      fprintf(stderr, "Error opening file: %s\n", strerror(errno));
       graph_destroy(graph);
-      return NULL;
+      cr_mkdir(dir_copy);
+      graph = load_disk();
+      parent = graph_search(graph -> root, dir_copy);
     } else if (parent -> type == (unsigned char) 4) {
       errnum = ENOTDIR;
       fprintf(stderr, "Error reading: %s\n", strerror(errnum));
@@ -420,7 +420,7 @@ void crFILE_printer(crFILE *cr_file)
   printf("Index: %u | Name: %s | Offset: %u | Type: %u\n",
     cr_file->directory->index, cr_file->directory->name,
     cr_file->directory->offset, cr_file->directory->type);
-  
+
   puts("iblock");
   printf("nh: %u | Size: %u | Data Pointers: ",
           cr_file->iblock->n_hardlinks, cr_file->iblock->size);

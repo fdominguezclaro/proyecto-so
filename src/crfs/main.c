@@ -20,26 +20,10 @@ int main(int argc, char *argv[])
   cr_mount(argv[1]);
 
   cr_ls("/root");
-  crFILE *cr_file = cr_open("/root/SSBS2.mp3", 'w');
+  crFILE *cr_file = cr_open("/root/tester/recursive/open/SSBS2.mp3", 'w');
   if (cr_file) crFILE_printer(cr_file);
   if (cr_file) crFILE_destroy(cr_file);
-
-  cr_ls("/root");
-  crFILE *cr_file1 = cr_open("/root/SSBS.mp3", 'r');
-  if (cr_file1) crFILE_printer(cr_file1);
-  if (cr_file1) crFILE_destroy(cr_file1);
-  
-  cr_ls("/root");
-  crFILE *cr_file2 = cr_open("/root/SSBS.mp3", 'w');
-  if (cr_file2) crFILE_printer(cr_file2);
-  if (cr_file2) crFILE_destroy(cr_file2);
-
-  cr_ls("/root");
-  crFILE *cr_file3 = cr_open("/root/SSBS2.mp3", 'w');
-  if (cr_file3) crFILE_printer(cr_file3);
-  if (cr_file3) crFILE_destroy(cr_file3);
-
-  cr_ls("/root");
+  cr_ls("/root/tester/recursive/open");
 
 
   // cr_bitmap();
