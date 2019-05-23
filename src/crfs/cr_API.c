@@ -220,18 +220,12 @@ crFILE* cr_open(char* path, char mode)
       graph_destroy(graph);
       return 0;
     }
-    unsigned int offset = next_free_entry(index);
-    if (offset == -1) {
-      graph_destroy(graph);
-      return 0;
-    }
 
-    // Deberian tener el mismo offset al llamar al next_free_entry(index)
-    directory = dir_parser_init(4, dir_name, index, offset);
+    directory = dir_parser_init(4, dir_name, index, 0);
     write_dir_block(parent -> index, directory);
 
     iblock = iblock_init(0, 1, NULL, NULL);
-    write_index_block(directory -> index, iblock, offset);
+    write_index_block(directory -> index, iblock, directory -> offset);
     write_bitmap(directory -> index, 1);
 
   } else {  // Find the FILE and instance a crFILE
