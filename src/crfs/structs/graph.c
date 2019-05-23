@@ -71,11 +71,9 @@ Queue* queue_init(Node* root)
 /** Agrega un nodo (archivo o directorio) */
 void graph_append(Graph* graph, Node* parent, Node* node)
 {
-  if ((node -> index == 0) & !graph -> root)
-  {
+  if ((node -> index == 0) & !graph -> root) {
     graph -> root = node;
-  } else
-  {
+  } else {
     parent -> childs[parent -> count] = node;
     parent -> count++;
     parent -> childs = (Node**) realloc(parent -> childs, sizeof(Node*) * (parent -> count + 1));
@@ -101,12 +99,10 @@ static Node* deque(Queue* queue)
 /** Agrega un nodo a una cola */
 static void queue_append(Queue* queue, Node* node)
 {
-  if (!queue -> head)
-  {
+  if (!queue -> head) {
     queue -> head = node;
     queue -> tail = node;
-  } else
-  {
+  } else {
     queue -> tail -> next = node;
     queue -> tail = node;
   }
@@ -118,11 +114,9 @@ Node *graph_search(Node* root, char* path)
   Node* actual;
   Queue* queue = queue_init(root);
 
-  while (queue -> head)
-  {
+  while (queue -> head) {
     actual = deque(queue);
-    if (strcmp(actual -> path, path) == 0)
-    {
+    if (strcmp(actual -> path, path) == 0) {
       free(queue);
       return actual;
     }
@@ -139,8 +133,7 @@ Node *graph_search(Node* root, char* path)
 /** Funcion que libera recursivamente la memoria de la lista ligada */
 static void nodes_destroy(Node* node)
 {
-  if (node)
-  {
+  if (node) {
     for (int i = 0; i < node -> count; i++) {
       nodes_destroy(node -> childs[i]);
     }
@@ -165,12 +158,9 @@ void graph_destroy(Graph* graph)
 
 /** Imprime los nodos para aludir un arbol */
 static void node_printer(Node *node, int depth) {
-  if (node)
-  {
-    for (int i = 0; i < node -> count; i++)
-    {
-      for (int j = 0; j < depth; j++)
-      {
+  if (node) {
+    for (int i = 0; i < node -> count; i++) {
+      for (int j = 0; j < depth; j++) {
         printf("--");
       }
       printf("> ");

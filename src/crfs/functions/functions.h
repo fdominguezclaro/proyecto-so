@@ -1,6 +1,6 @@
 #pragma once
-#include "../structs/graph.h"
 
+#include "../structs/graph.h"
 
 ////////////////////////////////////
 //        Public Functions        //
@@ -37,3 +37,6 @@ void write_4bytes(unsigned int index, int offset, unsigned int value);
 
 /** Lee y retorna un bloque indice */
 Index_block *read_index_block(unsigned int index);
+
+/** Escribe en un bloque indice */
+void write_index_block(unsigned int index, Index_block *iblock, unsigned int offset);

@@ -11,12 +11,17 @@ void data_destroy(Data* data){
 }
 
 Index_block* iblock_init(unsigned int size, unsigned int n_hardlinks, unsigned int * data_pointers, unsigned int * indirect_blocks)
+
 {
   Index_block* iblock = malloc(sizeof(Index_block));
   iblock -> size = size;
   iblock -> n_hardlinks = n_hardlinks;
-  iblock -> data_pointers = data_pointers;
-  iblock -> indirect_blocks = indirect_blocks;
+  
+  if (data_pointers) iblock -> data_pointers = data_pointers;
+  else iblock -> data_pointers = calloc(500, sizeof(unsigned int));
+  
+  if (indirect_blocks) iblock -> indirect_blocks = indirect_blocks;
+  else iblock -> indirect_blocks = calloc(10, sizeof(unsigned int));
 
   return iblock;
 }

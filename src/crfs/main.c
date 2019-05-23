@@ -19,10 +19,13 @@ int main(int argc, char *argv[])
   // Se monta el disco.
   cr_mount(argv[1]);
 
-  int r;
-  // cr_mkdir("/root/memes/hola/hele");
-  cr_hardlink("/root/memes/sudo2.jpg", "/root/hey/so/pain/new_hl.jpg");
-  cr_ls("/root/hey/so/pain");
+  cr_ls("/root");
+  crFILE *cr_file = cr_open("/root/tester/recursive/open/SSBS2.mp3", 'w');
+  if (cr_file) crFILE_printer(cr_file);
+  if (cr_file) crFILE_destroy(cr_file);
+  cr_ls("/root/tester/recursive/open");
+
+
   // cr_bitmap();
 
   /** DONE
@@ -33,10 +36,10 @@ int main(int argc, char *argv[])
    * cr_mkdir(char *foldername);
    * cr_rm(char *path);
    * cr_hardlink(char *orig, char *dest);
+   * cr_open(char *path, char mode);
   */
 
   /** TO DO
-   * cr_open(char *path, char mode);
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_close(crFILE *file_desc);

@@ -10,6 +10,32 @@ int errnum;
 
 char* DISK_PATH;
 
+/////////////////////////////////////
+//        Private Functions        //
+/////////////////////////////////////
+
+static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned char mode, char *path)
+{
+  crFILE *cr_file = malloc(sizeof(crFILE));
+
+
+  cr_file -> mode = mode;
+  cr_file -> iblock = iblock;
+  cr_file -> path = malloc(sizeof(char) * (strlen(path) + 1));
+  strcpy(cr_file -> path, path);
+
+  cr_file -> directory = directory;
+  char *dir_name = strrchr(cr_file -> path, '/');
+  dir_name++;
+  directory -> name = dir_name;
+
+  return cr_file;
+}
+
+////////////////////////////////////
+//        Public Functions        //
+////////////////////////////////////
+
 /** Monta el disco */
 void cr_mount(char* diskname)
 {
@@ -18,6 +44,7 @@ void cr_mount(char* diskname)
   if (pf == NULL) {
     errnum = errno;
     fprintf(stderr, "Error mounting disk: %s\n", strerror(errnum));
+    exit(errnum);
   } else {
     DISK_PATH = diskname;
     fclose (pf);
@@ -46,11 +73,11 @@ int cr_exists(char* path)
     errno = 2;
     fprintf(stderr, "Error opening file: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   else {
     graph_destroy(graph);
-    return 1;
+    return 0;
   }
 }
 
@@ -90,7 +117,7 @@ int cr_mkdir(char *foldername)
     errnum = EEXIST;
     fprintf(stderr, "Error: %s: %s\n", foldername, strerror(errnum));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
 
   // Copia del str para poder modificarlo
@@ -123,7 +150,7 @@ int cr_mkdir(char *foldername)
   else {
     // Busco el siguiente bloque libre
     unsigned int index = next_free_block(graph -> bytemap);
-    if (index == 0) return 0;
+    if (index == 0) return -1;
 
     // Escribo el directorio en el disco
     Dir_parser* dir_block = dir_parser_init(2, dir_name, index, 0);
@@ -134,20 +161,84 @@ int cr_mkdir(char *foldername)
 
     graph_destroy(graph);
 
-    return 1;
+    return 0;
   }
 
   graph_destroy(graph);
 
-  return 0;
+  return -1;
 }
 
 crFILE* cr_open(char* path, char mode)
 {
+  if (mode != 'r' && mode != 'w') {
+    fprintf(stderr, "Invalid char '%c' for mode: must be 'r' or 'w'\n", mode);
+    return NULL;
+  }
+
+  crFILE *cr_file;
+  Index_block *iblock;
+  Dir_parser *directory;
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
+  Node *entry = graph_search(graph -> root, path);
+
+  if (!entry && mode == 'r') {  // Cannot read an inexisting FILE
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return NULL;
+  } else if (entry && entry -> type != (unsigned char) 4) {  // Cannot open a directory
+    fprintf(stderr, "Error opening file: %s is a directory, not a file\n", path);
+    graph_destroy(graph);
+    return NULL;
+  } else if (mode == 'w') {  // Create a crFILE
+    if (entry) {  // Delete FILE only if exists
+      cr_rm(path);
+    }
+    char dir_copy[1000];
+    strcpy(dir_copy, path);
+    char *dir_name = strrchr(path, '/');
+    dir_name++;  // Le saco el / del comienzo
+    int len_name = strlen(dir_name) - 1;
+    trim_end(dir_copy, len_name + 2);
+
+    Node *parent = graph_search(graph -> root, dir_copy);
+    if (!parent) {
+      graph_destroy(graph);
+      cr_mkdir(dir_copy);
+      graph = load_disk();
+      parent = graph_search(graph -> root, dir_copy);
+    } else if (parent -> type == (unsigned char) 4) {
+      errnum = ENOTDIR;
+      fprintf(stderr, "Error reading: %s\n", strerror(errnum));
+      graph_destroy(graph);
+      return NULL;
+    }
+
+    unsigned int index = next_free_block(graph -> bytemap);
+    if (index == 0) {
+      graph_destroy(graph);
+      return NULL;
+    }
+
+    directory = dir_parser_init(4, dir_name, index, 0);
+    write_dir_block(parent -> index, directory);
+
+    iblock = iblock_init(0, 1, NULL, NULL);
+    write_index_block(directory -> index, iblock, directory -> offset);
+    write_bitmap(directory -> index, 1);
+
+  } else {  // Find the FILE and instance a crFILE
+    directory = malloc(sizeof(Dir_parser));
+    directory -> type = entry -> type;
+    directory -> offset = entry -> offset;
+    directory -> index = entry -> index;
+    iblock = read_index_block(directory -> index);
+  }
+
+  cr_file = crFILE_init(directory, iblock, (unsigned char) mode, path);
   graph_destroy(graph);
+  return cr_file;
 }
 
 int cr_read(crFILE* file_desc, void* buffer, int nbytes)
@@ -168,10 +259,13 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes)
 
 int cr_close(crFILE* file_desc)
 {
-  Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
+  if (file_desc) {
+    crFILE_destroy(file_desc);
+    return 0;
+  }
+  errno = EIO;
+  fprintf(stderr, "Error closing file: %s\n", strerror(errno));
+  return -1;
 }
 
 int cr_rm(char* path)
@@ -184,7 +278,7 @@ int cr_rm(char* path)
     errno = 2;
     fprintf(stderr, "Error opening file: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
 
   Index_block *iblock = read_index_block(entry -> index);
@@ -207,7 +301,7 @@ int cr_rm(char* path)
   iblock_destroy(iblock);
   graph_destroy(graph);
 
-  return 1;
+  return 0;
 }
 
 int cr_hardlink(char* orig, char* dest)
@@ -222,21 +316,21 @@ int cr_hardlink(char* orig, char* dest)
     errno = EEXIST;
     fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   // No existe el origen
   if (!entry) {
     errno = 2;
     fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   // El origen es un directorio
   else if (entry -> type == (unsigned char) 2) {
     errno = EISDIR;
     fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   else {
     // Copia del str para poder modificarlo
@@ -276,7 +370,7 @@ int cr_hardlink(char* orig, char* dest)
 
     dir_parser_destroy(hl_block);
     graph_destroy(graph);
-    return 1;
+    return 0;
   }
 }
 
@@ -294,4 +388,49 @@ int cr_load(char* orig)
   // graph_printer(graph);
   /** Work Here */
   graph_destroy(graph);
+}
+
+////////////////////////////
+//          Frees         //
+////////////////////////////
+
+void crFILE_destroy(crFILE *cr_file)
+{
+  iblock_destroy(cr_file -> iblock);
+  free(cr_file -> path);
+  dir_parser_destroy(cr_file -> directory);
+  free(cr_file);
+}
+
+///////////////////////////////
+//          Printers         //
+///////////////////////////////
+
+void crFILE_printer(crFILE *cr_file)
+{
+  if (!cr_file) {
+    puts("--------");
+    puts("No file");
+    puts("--------");
+    return;
+  }
+  puts("--------------");
+  printf("Path: %s | Mode: %c\n", cr_file->path, cr_file->mode);
+  puts("Directory");
+  printf("Index: %u | Name: %s | Offset: %u | Type: %u\n",
+    cr_file->directory->index, cr_file->directory->name,
+    cr_file->directory->offset, cr_file->directory->type);
+
+  puts("iblock");
+  printf("nh: %u | Size: %u | Data Pointers: ",
+          cr_file->iblock->n_hardlinks, cr_file->iblock->size);
+  for (int i = 0; i < 500; i++) {
+    if (i != 499) printf("%u, ", cr_file->iblock->data_pointers[i]);
+    else printf("%u | Indirect Blocks: ", cr_file->iblock->data_pointers[i]);
+  }
+  for (int i = 0; i < 10; i++) {
+    if (i != 9) printf("%u, ", cr_file->iblock->indirect_blocks[i]);
+    else printf("%u", cr_file->iblock->indirect_blocks[i]);
+  }
+  puts("\n--------------");
 }

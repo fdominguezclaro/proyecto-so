@@ -6,8 +6,8 @@
 
 #include "../structs/graph.h"
 #include "../structs/structs.h"
-#include "functions.h"
 #include "../cr_API.h"
+#include "functions.h"
 
 unsigned int BLOCK_SIZE = 2048;
 
@@ -27,8 +27,7 @@ int byteToBits(unsigned char byte)
 	int aux;
 	int counter = 0;
 	char *binary_number = malloc(sizeof(unsigned char) * 9);
-	for (int bit = (sizeof(unsigned char) * 7); bit >= 0 ; bit--)
-	{
+	for (int bit = (sizeof(unsigned char) * 7); bit >= 0; bit--) {
 		aux = byte >> bit;
 		if (aux & 1) {
 			binary_number[counter] = 1 + '0';
@@ -99,7 +98,7 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	// Lee un bloque completo
 	for (int i = 0; i < 64; i++)
 	{
-		fseek(file, (32 * i) + ((unsigned int)((index) * BLOCK_SIZE)), SEEK_SET);
+		fseek(file, (32 * i) + ((unsigned int) ((index) * BLOCK_SIZE)), SEEK_SET);
 		fread(buffer, sizeof(unsigned char), 32, file);
 		dir_parser[i] = read_entry(buffer, bytemap, i * 32);
 	};
@@ -110,14 +109,15 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 };
 
 /** Escribe un bloque de directorio en el disco */
-void write_dir_block(unsigned int index, Dir_parser* dir)
+void write_dir_block(unsigned int index, Dir_parser *dir)
 {
 	int offset = next_free_entry(index);
 	if (offset == -1) return;
+	dir -> offset = offset;
 
 	unsigned char zero = '\0';
-  unsigned char high = (unsigned char)(dir -> index >> 8);
-  unsigned char low  = dir -> index & 0xff;
+	unsigned char high = (unsigned char)(dir -> index >> 8);
+	unsigned char low = dir -> index & 0xff;
 
 	FILE *file = fopen(DISK_PATH, "rb+");
 	fseek(file, (unsigned int)((BLOCK_SIZE * index) + offset), SEEK_SET);
@@ -127,7 +127,6 @@ void write_dir_block(unsigned int index, Dir_parser* dir)
 	fwrite(&high, sizeof(unsigned char), 1, file);
 	fwrite(&low, sizeof(unsigned char), 1, file);
 	fclose(file);
-
 }
 
 /** Lee los directorios de manera recursiva DFS */
@@ -162,7 +161,7 @@ static void load_dir(Graph *graph, Node *parent)
 		dir_parser_destroy(dir_entries[i]);
 
 		// Llamado recursivo solo si es directorio y no es el padre
-		if (node->type == (unsigned char) 2) load_dir(graph, node);
+		if (node -> type == (unsigned char) 2) load_dir(graph, node);
 		// Agregamos la entrada al directorio padre
 		if (parent) graph_append(graph, parent, node);
 	};
@@ -188,8 +187,7 @@ void trim_end(char *str, int n)
 {
 	n = strlen(str) - n;
 
-	if (n < 0)
-		n = 0;
+	if (n < 0) n = 0;
 
 	str[n] = '\0';
 }
@@ -198,23 +196,18 @@ void trim_end(char *str, int n)
 int next_free_block(unsigned char *bytemap)
 {
 	for (unsigned int index = 0; index < 8192; index++) {
-
 		int aux;
-		for (int bit = (sizeof(unsigned char) * 7); bit >= 0 ; bit--)
-		{
+		for (int bit = (sizeof(unsigned char) * 7); bit >= 0; bit--) {
 			aux = bytemap[index] >> bit;
 			if (aux & 1) continue;
-			else {
-				return (index * 8) + 7 - bit;
-			}
+			else return (index * 8) + 7 - bit;
 		}
 	}
 
 	// No queda espacio en disco
 	errnum = ENOSPC;
 	fprintf(stderr, "Error writing to disk: %s\n", strerror(errnum));
-
-	return 0;
+	return -1;
 }
 
 /** Busca la siguiente entrada valida en un bloque de directorio */
@@ -225,9 +218,8 @@ int next_free_entry(unsigned int index)
 	int offset = -1;
 	unsigned char type;
 	// Lee un bloque completo
-	for (int i = 0; i < 64; i++)
-	{
-		fseek(file, (32 * i) + ((unsigned int)((index) * BLOCK_SIZE)), SEEK_SET);
+	for (int i = 0; i < 64; i++) {
+		fseek(file, (32 * i) + ((unsigned int)((index)*BLOCK_SIZE)), SEEK_SET);
 		fread(buffer, sizeof(unsigned char), 32, file);
 		type = buffer[0];
 
@@ -238,7 +230,7 @@ int next_free_entry(unsigned int index)
 		}
 	};
 
-	// No encontro ningun bloque invalido
+	// No encontro ningun bloque libre
 	if (offset == -1) fprintf(stderr, "Error: No space extra in directory\n");
 
 	free(buffer);
@@ -290,16 +282,11 @@ void write_4bytes(unsigned int index, int offset, unsigned int value)
 	bytes[2] = (value >> 8) & 0xFF;
 	bytes[3] = value & 0xFF;
 
-	// unsigned char *byte = malloc(sizeof(unsigned char) * 4);
-	// byte[0] = value;
-	// printf("VALUE %s\n", bytes);
-
 	FILE *file = fopen(DISK_PATH, "rb+");
 	fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
 
 	fwrite(bytes, sizeof(unsigned char), 4, file);
 
-	// free(byte);
 	fclose(file);
 }
 
@@ -320,28 +307,39 @@ Index_block *read_index_block(unsigned int index)
 	unsigned int size = (unsigned int)buffer[0] * p0 + (unsigned int)buffer[1] * p1 + (unsigned int)buffer[2] * p2 + (unsigned int)buffer[3];
 	unsigned int n_hardlinks = (unsigned int)buffer[4] * p0 + (unsigned int)buffer[5] * p1 + (unsigned int)buffer[6] * p2 + (unsigned int)buffer[7];
 
-	unsigned int *data_pointers = malloc(sizeof(unsigned int) * 500);
-	unsigned int *indirect_blocks = malloc(sizeof(unsigned int) * 10);
+	unsigned int *data_pointers = calloc(500, sizeof(unsigned int));
+	unsigned int *indirect_blocks = calloc(10, sizeof(unsigned int));
 	unsigned int ptr;
 
 	// Lee los 500 punteros de direccionamiento directo
-	for (int i = 8; i < 2008; i += 4)
-	{
-	 	ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
+	for (int i = 8; i < 2008; i += 4) {
+		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
 		data_pointers[(i - 8) / 4] = ptr;
 	};
 
 	// Lee los 10 punteros de direccionamiento indirecto
-	for (int i = 2008; i < 2048; i += 4)
-	{
+	for (int i = 2008; i < 2048; i += 4) {
 		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
 		indirect_blocks[(i - 2008) / 4] = ptr;
 	};
 
-	Index_block * index_block = iblock_init(size, n_hardlinks, data_pointers, indirect_blocks);
+	Index_block *index_block = iblock_init(size, n_hardlinks, data_pointers, indirect_blocks);
 
 	free(buffer);
 	fclose(file);
 
 	return index_block;
+};
+
+/** Escribe en un bloque indice */
+void write_index_block(unsigned int index, Index_block *iblock, unsigned int offset)
+{
+	write_4bytes(index, offset, iblock -> size);
+	write_4bytes(index, offset + 4, iblock -> n_hardlinks);
+	
+	unsigned char *buffer = calloc(2040, sizeof(unsigned char));
+
+	for (int i = 8, j = 0; i < 2008; i += 4, j++) write_4bytes(index, offset + i, iblock->data_pointers[j]);
+	for (int i = 2008, j = 0; i < 2040; i += 4, j++) write_4bytes(index, offset, iblock->indirect_blocks[j]);
+	free(buffer);
 };
