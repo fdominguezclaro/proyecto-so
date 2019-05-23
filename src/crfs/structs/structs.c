@@ -45,3 +45,8 @@ Dir_parser* dir_parser_init(unsigned char type, char* name, unsigned int index)
 
   return dir_parser;
 }
+
+void dir_parser_destroy(Dir_parser* dir_parser)
+{
+  free(dir_parser);
+}

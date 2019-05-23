@@ -19,7 +19,12 @@ int main(int argc, char *argv[])
   // Se monta el disco.
   cr_mount(argv[1]);
 
-  cr_ls("/root/memes/free.jpg");
+  int r;
+  cr_ls("/root");
+  r = cr_exists("/root/memes/casos borde.jpg");
+  r = cr_mkdir("/root/chupalo");
+  cr_ls("/root");
+
 
   // cr_bitmap();
 
@@ -27,11 +32,11 @@ int main(int argc, char *argv[])
    * cr_mount(char *diskname);
    * cr_bitmap();
    * cr_ls("path");
+   * cr_exists(char *path);
+   * cr_mkdir(char *foldername);
   */
 
   /** TO DO
-   * cr_exist(char *path);
-   * cr_mkdir(char *foldername);
    * cr_open(char *path, char mode);
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);

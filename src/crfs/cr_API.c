@@ -1,15 +1,27 @@
 #include <stdio.h>
+#include <errno.h>
 
 #include "cr_API.h"
 #include "functions/functions.h"
 #include "structs/graph.h"
+
+extern int errno;
+int errnum;
 
 char* DISK_PATH;
 
 /** Monta el disco */
 void cr_mount(char* diskname)
 {
-  DISK_PATH = diskname;
+  FILE * pf;
+  pf = fopen (diskname, "rb");
+  if (pf == NULL) {
+    errnum = errno;
+    fprintf(stderr, "Error mounting disk: %s\n", strerror(errnum));
+  } else {
+    DISK_PATH = diskname;
+    fclose (pf);
+  }
 }
 
 /** Printea el bitmap, la cantidad de 1's y 0's */
@@ -29,8 +41,17 @@ int cr_exists(char* path)
 {
   Graph* graph = load_disk();
   // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
+  Node *entry = graph_search(graph -> root, path);
+  if (!entry) {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return 0;
+  }
+  else {
+    graph_destroy(graph);
+    return 1;
+  }
 }
 
 /** Recibe un path de la forma "/carpeta/file_or_directory" */
@@ -39,9 +60,11 @@ void cr_ls(char* path)
   Graph* graph = load_disk();
   // graph_printer(graph);
   Node *entry = graph_search(graph -> root, path);
-  if (!entry) printf("Path inexistente\n");
-  else {
-    if (entry -> type == (unsigned char) 4) printf("%s es un archivo, no un directorio\n", path);
+  if (entry) {
+    if (entry -> type == (unsigned char) 4) {
+      errnum = ENOTDIR;
+      fprintf(stderr, "Error reading %s: %s\n", path, strerror(errnum));
+    }
     else {
       printf("Directorios y archivos en %s:\n", path);
       for (int i = 0; i < entry -> count; i++)
@@ -50,6 +73,9 @@ void cr_ls(char* path)
         else printf("%s\n", entry->childs[i] -> name);
       }
     }
+  } else {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
   }
   graph_destroy(graph);
 }
@@ -57,9 +83,62 @@ void cr_ls(char* path)
 int cr_mkdir(char *foldername)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
+
+  Node *aux = graph_search(graph -> root, foldername);
+  if (aux) {
+    errnum = EEXIST;
+    fprintf(stderr, "Error: %s: %s\n", foldername, strerror(errnum));
+    graph_destroy(graph);
+    return 0;
+  }
+
+  // Copia del str para poder modificarlo
+  char dir_copy[1000];
+	strcpy(dir_copy, foldername);
+
+  // Nombre del nuevo directorio
+  char *dir_name = strrchr(foldername, '/');
+  dir_name++; // Le saco el / del comienzo
+  int len_name = strlen(dir_name) - 1;
+
+  // Se guarda path del padre en dir_copy
+  trim_end(dir_copy, len_name + 2);
+
+  // Verifica si existe el path
+  Node *parent = graph_search(graph -> root, dir_copy);
+
+  if (!parent) {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    return 0;
+  }
+
+  // Si el arbol encuentra un archivo y no un directorio
+  if (parent -> type == (unsigned char) 4) {
+    errnum = ENOTDIR;
+    fprintf(stderr, "Error reading: %s\n", strerror(errnum));
+  }
+  else {
+    // Busco el siguiente bloque libre
+    unsigned int index = next_free_block(graph -> bytemap);
+    if (index == 0) return 0;
+
+    // Escribo el directorio en el disco
+    Dir_parser* dir_block = dir_parser_init(2, dir_name, index);
+    write_dir_block(parent -> index, dir_block);
+    write_bitmap(index, 1);
+
+    dir_parser_destroy(dir_block);
+
+    graph_destroy(graph);
+
+    return 1;
+  }
+
   graph_destroy(graph);
+
+  return 0;
 }
 
 crFILE* cr_open(char* path, char mode)
