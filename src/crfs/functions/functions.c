@@ -207,8 +207,7 @@ int next_free_block(unsigned char *bytemap)
 	// No queda espacio en disco
 	errnum = ENOSPC;
 	fprintf(stderr, "Error writing to disk: %s\n", strerror(errnum));
-
-	return 0;
+	return -1;
 }
 
 /** Busca la siguiente entrada valida en un bloque de directorio */
@@ -313,15 +312,13 @@ Index_block *read_index_block(unsigned int index)
 	unsigned int ptr;
 
 	// Lee los 500 punteros de direccionamiento directo
-	for (int i = 8; i < 2008; i += 4)
-	{
+	for (int i = 8; i < 2008; i += 4) {
 		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
 		data_pointers[(i - 8) / 4] = ptr;
 	};
 
 	// Lee los 10 punteros de direccionamiento indirecto
-	for (int i = 2008; i < 2048; i += 4)
-	{
+	for (int i = 2008; i < 2048; i += 4) {
 		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
 		indirect_blocks[(i - 2008) / 4] = ptr;
 	};

@@ -73,11 +73,11 @@ int cr_exists(char* path)
     errno = 2;
     fprintf(stderr, "Error opening file: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   else {
     graph_destroy(graph);
-    return 1;
+    return 0;
   }
 }
 
@@ -117,7 +117,7 @@ int cr_mkdir(char *foldername)
     errnum = EEXIST;
     fprintf(stderr, "Error: %s: %s\n", foldername, strerror(errnum));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
 
   // Copia del str para poder modificarlo
@@ -150,7 +150,7 @@ int cr_mkdir(char *foldername)
   else {
     // Busco el siguiente bloque libre
     unsigned int index = next_free_block(graph -> bytemap);
-    if (index == 0) return 0;
+    if (index == 0) return -1;
 
     // Escribo el directorio en el disco
     Dir_parser* dir_block = dir_parser_init(2, dir_name, index, 0);
@@ -161,12 +161,12 @@ int cr_mkdir(char *foldername)
 
     graph_destroy(graph);
 
-    return 1;
+    return 0;
   }
 
   graph_destroy(graph);
 
-  return 0;
+  return -1;
 }
 
 crFILE* cr_open(char* path, char mode)
@@ -207,18 +207,18 @@ crFILE* cr_open(char* path, char mode)
       errno = 2;
       fprintf(stderr, "Error opening file: %s\n", strerror(errno));
       graph_destroy(graph);
-      return 0;
+      return NULL;
     } else if (parent -> type == (unsigned char) 4) {
       errnum = ENOTDIR;
       fprintf(stderr, "Error reading: %s\n", strerror(errnum));
       graph_destroy(graph);
-      return 0;
+      return NULL;
     }
 
     unsigned int index = next_free_block(graph -> bytemap);
     if (index == 0) {
       graph_destroy(graph);
-      return 0;
+      return NULL;
     }
 
     directory = dir_parser_init(4, dir_name, index, 0);
@@ -259,10 +259,13 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes)
 
 int cr_close(crFILE* file_desc)
 {
-  Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
+  if (file_desc) {
+    crFILE_destroy(file_desc);
+    return 0;
+  }
+  errno = EIO;
+  fprintf(stderr, "Error closing file: %s\n", strerror(errno));
+  return -1;
 }
 
 int cr_rm(char* path)
@@ -275,7 +278,7 @@ int cr_rm(char* path)
     errno = 2;
     fprintf(stderr, "Error opening file: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
 
   Index_block *iblock = read_index_block(entry -> index);
@@ -298,7 +301,7 @@ int cr_rm(char* path)
   iblock_destroy(iblock);
   graph_destroy(graph);
 
-  return 1;
+  return 0;
 }
 
 int cr_hardlink(char* orig, char* dest)
@@ -313,21 +316,21 @@ int cr_hardlink(char* orig, char* dest)
     errno = EEXIST;
     fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   // No existe el origen
   if (!entry) {
     errno = 2;
     fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   // El origen es un directorio
   else if (entry -> type == (unsigned char) 2) {
     errno = EISDIR;
     fprintf(stderr, "Error creating hardlink: %s\n", strerror(errno));
     graph_destroy(graph);
-    return 0;
+    return -1;
   }
   else {
     // Copia del str para poder modificarlo
@@ -367,7 +370,7 @@ int cr_hardlink(char* orig, char* dest)
 
     dir_parser_destroy(hl_block);
     graph_destroy(graph);
-    return 1;
+    return 0;
   }
 }
 
