@@ -10,6 +10,23 @@ int errnum;
 
 char* DISK_PATH;
 
+/////////////////////////////////////
+//        Private Functions        //
+/////////////////////////////////////
+
+static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock)
+{
+  crFILE *cr_file = malloc(sizeof(crFILE));
+  cr_file -> directory = directory;
+  cr_file -> iblock = iblock;
+
+  return cr_file;
+}
+
+////////////////////////////////////
+//        Public Functions        //
+////////////////////////////////////
+
 /** Monta el disco */
 void cr_mount(char* diskname)
 {
@@ -145,8 +162,42 @@ crFILE* cr_open(char* path, char mode)
 {
   Graph* graph = load_disk();
   // graph_printer(graph);
-  /** Work Here */
+  Node *entry = graph_search(graph -> root, path);
+
+  if (entry -> type != (unsigned char) 4)
+  {
+    fprintf(stderr, "Error opening file: %s is a directory, not a file\n", path);
+    graph_destroy(graph);
+    return NULL;
+  }
+
+  crFILE *cr_file;
+  Index_block *iblock;
+  Dir_parser *directory = malloc(sizeof(Dir_parser));
+  directory -> name = malloc(sizeof(char) * (strlen(entry -> name) + 1));
+  if (mode == 'w') {
+    if (entry) {
+      cr_rm(path);
+    }
+    
+  } else if (mode == 'r' && entry) {
+    strcpy(directory -> name, entry -> name);
+    directory -> type = entry -> type;
+    directory -> index = entry -> index;
+    directory -> offset = entry -> offset;
+    iblock = read_index_block(entry -> index);
+  } else {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    free(directory -> name);
+    free(directory);
+    graph_destroy(graph);
+    return NULL;
+  }
+
+  cr_file = crFILE_init(directory, iblock);
   graph_destroy(graph);
+  return cr_file;
 }
 
 int cr_read(crFILE* file_desc, void* buffer, int nbytes)
@@ -233,4 +284,16 @@ int cr_load(char* orig)
   // graph_printer(graph);
   /** Work Here */
   graph_destroy(graph);
+}
+
+////////////////////////////
+//          Frees         //
+////////////////////////////
+
+void crFILE_destroy(crFILE *cr_file)
+{
+  iblock_destroy(cr_file -> iblock);
+  free(cr_file -> directory -> name);
+  dir_parser_destroy(cr_file -> directory);
+  free(cr_file);
 }

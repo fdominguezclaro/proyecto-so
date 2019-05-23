@@ -18,14 +18,24 @@ int main(int argc, char *argv[])
 
   // Se monta el disco.
   cr_mount(argv[1]);
-
-  int r;
   cr_ls("/root");
-  r = cr_exists("/root/memes/casos borde.jpg");
-  r = cr_mkdir("/root/chupalo");
-  cr_ls("/root");
+  crFILE *file2 = cr_open("/root/Program in C.mkv", 'r');
+  
+  printf("Directory:\n");
+  printf("Name: %s | type: %u | index: %u | offset: %u\n", 
+  file2->directory->name,
+  file2->directory->type,
+  file2->directory->index,
+  file2->directory->offset);
 
+  printf("iblock:\n");
+  printf("Size: %u | nhls: %u | dp: %u | ib: %u\n", 
+  file2->iblock->size,
+  file2->iblock->n_hardlinks,
+  *file2->iblock->data_pointers,
+  *file2->iblock->indirect_blocks);
 
+  crFILE_destroy(file2);
   // cr_bitmap();
 
   /** DONE
@@ -34,6 +44,8 @@ int main(int argc, char *argv[])
    * cr_ls("path");
    * cr_exists(char *path);
    * cr_mkdir(char *foldername);
+   * cr_rm(char *path);
+   * cr_hardlink(char *orig, char *dest);
   */
 
   /** TO DO
@@ -41,8 +53,6 @@ int main(int argc, char *argv[])
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_close(crFILE *file_desc);
-   * cr_rm(char *path);
-   * cr_hardlink(char *orig, char *dest);
    * cr_unload(char *orig, char *dest);
    * cr_load(char *orig);
   */

@@ -7,7 +7,10 @@
 
 /** Representa un archivo abierto */
 typedef struct FILE {
-    Dir_parser* directory;
+    Dir_parser *directory;
+    Index_block *iblock;
+    // if type == 0 -> read mode, else write mode
+    unsigned int type;
 } crFILE;
 
 ////////////////////////////////////
@@ -41,3 +44,5 @@ int cr_hardlink(char* orig, char* dest);
 int cr_unload(char* orig, char* dest);
 
 int cr_load(char* orig);
+
+void crFILE_destroy(crFILE *cr_file);
