@@ -409,25 +409,25 @@ int cr_hardlink(char* orig, char* dest)
 int cr_unload(char* orig, char* dest)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
-}
-
-int cr_load(char* orig)
-{
-  Graph* graph = load_disk();
 
   // Meto todo a una carpeta Downloads
   char *path = malloc(1000 * sizeof(char));
-  strcpy(path, "Downloads");
-  mkdir("Downloads", 0777);
+  strcpy(path, dest);
+  mkdir(dest, 0777);
   strcat(path, "/");
 
   Node *dir = graph_search(graph -> root, orig);
   // Escribo recursivmente
   write_file(path, dir);
   free(path);
+  graph_destroy(graph);
+}
+
+int cr_load(char* orig)
+{
+  Graph* graph = load_disk();
+  // graph_printer(graph);
+  /** Work Here */
   graph_destroy(graph);
 }
 
