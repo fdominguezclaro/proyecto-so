@@ -43,7 +43,7 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   unsigned int *data_buffer;
   for (int i = 0; i < 10; i++) {
     data_buffer = read_data_block(cr_file -> iblock -> indirect_blocks[i]);
-    for (int j = 0; j < 512; j++) cr_file -> data_pointers[500 + i * 512] = data_buffer[j];
+    for (int j = 0; j < 512; j++) cr_file -> data_pointers[500 + i * 512 + j] = data_buffer[j];
     free(data_buffer);
   }
 
