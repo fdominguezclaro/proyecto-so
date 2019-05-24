@@ -17,7 +17,10 @@ Para poder acceder a las funciones que se describirán a continuación es necesa
 
 ## Estructuras
 
-1. crFILE:
+1. crFILE: está compuesta por una estructura `Index_block` que representa su bloque índice y otra `Dir_parser`, que representa su bloque de directorio. Además contiene algunos valores que son útiles a la hora de realizar operaciones sobre el archivo.
+2. Graph: Representa el árbol de directorios
+3. Dir_parser: Representa un bloque de directorio.
+4. Index_block: representa un bloque índice.
 
 ## Funciones
 
@@ -36,7 +39,7 @@ Para poder acceder a las funciones que se describirán a continuación es necesa
 3. `int cr_exists(char* path)`
     * Función para ver si un archivo o carpeta existe en la ruta especificada por `path`.
     * Retorna 0 si el archivo o carpeta existe.
-    * En caso de que no exista, se retorna 0 junto con la impresión de `errno = 2` correspondiente a _"No such file or directory"_.
+    * En caso de que no exista, se retorna -1 junto con la impresión de `errno = 2` correspondiente a _"No such file or directory"_.
 
 4. `void cr_ls(char* path)`
     * Lista los elementos de un directorio del disco, mostrando los nombres de todos los archivos y directorios contenidos en el directorio indicado por `path`.
@@ -86,11 +89,10 @@ Para poder acceder a las funciones que se describirán a continuación es necesa
 7. `int cr_unload(char* orig, char* dest)`
     * Función que se encarga de copiar un archivo o un árbol de directorios (es decir, un directorio y todos sus contenidos) del disco, referenciado por `orig`, hacia un nuevo archivo o directorio de ruta `dest` en su computador.
     * Retorna 0 cuando la copia se efectúa correctamente.
-    *
+    * Si falla retorna -1.
+    * En caso de que no exista `orig`, se retorna -1 junto con la impresión de `errno = 2` correspondiente a _"No such file or directory"_.
 
 8. `int cr_load(char* orig)`
     * Función que se encarga de copiar un archivo o árbol de directorios, referenciado por `orig` al disco. En caso de que un archivo sea demasiado pesado para el disco, se escribe hasta acabar el espacio disponible.
     * Retorna 0 cuando la carga se efectúa correctamente.
     *
-
-</div>

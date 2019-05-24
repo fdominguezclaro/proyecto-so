@@ -399,6 +399,7 @@ unsigned int *read_data_block(unsigned int index)
 	return data_pointers;
 }
 
+/** Escribe un archivo o directorio en nuestro computador */
 void write_file(char * path, Node *file) {
   char *new_path = malloc(1000 * sizeof(char));
 	strcpy(new_path, path);

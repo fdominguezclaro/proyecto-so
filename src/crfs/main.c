@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
   cr_mount(argv[1]);
 
   cr_ls("/root/memes");
-  cr_load("/root/memes/ruz");
+  cr_unload("/root", "Downloads");
 
   /** DONE
    * cr_mount(char *diskname);
@@ -33,12 +33,12 @@ int main(int argc, char *argv[])
    * cr_open(char *path, char mode);
    * cr_close(crFILE *file_desc);
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
-   * cr_load(char *orig);
+   * cr_unload(char *orig, char *dest);
   */
 
   /** TO DO
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
-   * cr_unload(char *orig, char *dest);
+   * cr_load(char *orig);
   */
 
   // crFILE* file_desc = cr_open("../../files/test.txt", 'w');

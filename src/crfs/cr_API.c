@@ -43,7 +43,7 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   unsigned int *data_buffer;
   for (int i = 0; i < 10; i++) {
     data_buffer = read_data_block(cr_file -> iblock -> indirect_blocks[i]);
-    for (int j = 0; j < 512; j++) cr_file -> data_pointers[500 + i * 512] = data_buffer[j];
+    for (int j = 0; j < 512; j++) cr_file -> data_pointers[500 + i * 512 + j] = data_buffer[j];
     free(data_buffer);
   }
 
@@ -409,25 +409,36 @@ int cr_hardlink(char* orig, char* dest)
 int cr_unload(char* orig, char* dest)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
+
+  // Meto todo a una carpeta Downloads
+  char *path = malloc(1000 * sizeof(char));
+  strcpy(path, dest);
+  mkdir(dest, 0777);
+  strcat(path, "/");
+
+  Node *dir = graph_search(graph -> root, orig);
+
+  if (!dir) {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    free(path);
+    return -1;
+  }
+
+  // Escribo recursivmente
+  write_file(path, dir);
+  free(path);
   graph_destroy(graph);
+
+  return 0;
 }
 
 int cr_load(char* orig)
 {
   Graph* graph = load_disk();
-
-  // Meto todo a una carpeta Downloads
-  char *path = malloc(1000 * sizeof(char));
-  strcpy(path, "Downloads");
-  mkdir("Downloads", 0777);
-  strcat(path, "/");
-
-  Node *dir = graph_search(graph -> root, orig);
-  // Escribo recursivmente
-  write_file(path, dir);
-  free(path);
+  // graph_printer(graph);
+  /** Work Here */
   graph_destroy(graph);
 }
 
