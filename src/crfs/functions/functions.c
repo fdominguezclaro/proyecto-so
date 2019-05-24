@@ -81,7 +81,7 @@ static Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap, int
 	// else if (type == (unsigned char) 4) printf("FILE %s index: %u\n", name, index);
 
 	return dir_parser_init(type, name, index, offset);
-};
+}
 
 /** Lee un bloque de directorio en el indice index
  * Retorna un array de Dir_parser que representan los archivos en este directorio
@@ -96,8 +96,7 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	Dir_parser **dir_parser = malloc(sizeof(Dir_parser *) * 64);
 
 	// Lee un bloque completo
-	for (int i = 0; i < 64; i++)
-	{
+	for (int i = 0; i < 64; i++) {
 		fseek(file, (32 * i) + ((unsigned int) ((index) * BLOCK_SIZE)), SEEK_SET);
 		fread(buffer, sizeof(unsigned char), 32, file);
 		dir_parser[i] = read_entry(buffer, bytemap, i * 32);
@@ -106,7 +105,7 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	free(buffer);
 	fclose(file);
 	return dir_parser;
-};
+}
 
 /** Escribe un bloque de directorio en el disco */
 void write_dir_block(unsigned int index, Dir_parser *dir)
@@ -329,7 +328,7 @@ Index_block *read_index_block(unsigned int index)
 	fclose(file);
 
 	return index_block;
-};
+}
 
 /** Escribe en un bloque indice */
 void write_index_block(unsigned int index, Index_block *iblock, unsigned int offset)
@@ -342,4 +341,57 @@ void write_index_block(unsigned int index, Index_block *iblock, unsigned int off
 	for (int i = 8, j = 0; i < 2008; i += 4, j++) write_4bytes(index, offset + i, iblock->data_pointers[j]);
 	for (int i = 2008, j = 0; i < 2040; i += 4, j++) write_4bytes(index, offset, iblock->indirect_blocks[j]);
 	free(buffer);
-};
+}
+
+/** Reads nbytes from index and offset statements and saves it in buffer */
+void read_file_to_buffer(unsigned int nbytes, crFILE *cr_file, void *buffer)
+{
+	FILE *file = fopen(DISK_PATH, "r");
+	fflush(stdout);
+	buffer += cr_file -> amount_read;
+	int aux = 0;
+	for (int i = cr_file -> actual_data_index; i < 5620; i++) {
+		fseek(file, (unsigned int) ((BLOCK_SIZE * cr_file -> data_pointers[cr_file -> actual_data_index]) + cr_file -> actual_offset), SEEK_SET);
+		while (aux < nbytes && cr_file -> amount_read < cr_file -> iblock -> size && 
+				cr_file -> actual_offset < 2048) {
+			fread(buffer, sizeof(char), 1, file);
+			cr_file -> actual_offset++;
+			cr_file -> amount_read++;
+			buffer++;
+			aux++;
+		}
+		if (cr_file -> actual_offset == 2048) {
+			cr_file -> actual_offset = 0;
+			cr_file -> actual_data_index++;
+		}
+		if (cr_file -> amount_read == nbytes || cr_file -> amount_read == cr_file -> iblock -> size) break;
+	}
+	fclose(file);
+}
+
+/** Lee 512 bloques de datos para archivos */
+unsigned int *read_data_block(unsigned int index)
+{
+	FILE *file = fopen(DISK_PATH, "rb");
+
+	unsigned char *buffer = malloc(sizeof(unsigned char) * 2048);
+
+	fseek(file, (unsigned int) (index * BLOCK_SIZE), SEEK_SET);
+	fread(buffer, sizeof(unsigned char), 2048, file);
+
+	unsigned int p2 = (unsigned int) pow(2, 8);
+
+	unsigned int *data_pointers = calloc(512, sizeof(unsigned int));
+	unsigned int ptr;
+
+	// Lee los 500 punteros de direccionamiento directo
+	for (int i = 0; i < 2048; i += 4) {
+		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
+		data_pointers[i/ 4] = ptr;
+	};
+
+	free(buffer);
+	fclose(file);
+
+	return data_pointers;
+}

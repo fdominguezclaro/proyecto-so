@@ -6,12 +6,12 @@ Data* data_init()
   return data;
 }
 
-void data_destroy(Data* data){
+void data_destroy(Data* data)
+{
   free(data);
 }
 
 Index_block* iblock_init(unsigned int size, unsigned int n_hardlinks, unsigned int * data_pointers, unsigned int * indirect_blocks)
-
 {
   Index_block* iblock = malloc(sizeof(Index_block));
   iblock -> size = size;
