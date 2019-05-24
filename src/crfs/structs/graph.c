@@ -29,8 +29,7 @@ Node* node_init(Dir_parser* dir_parser, char *parent_path)
     node -> path = malloc(sizeof(char) * (strlen(node->name) + 2));
     strcpy(node -> path, "/");
     strcat(node -> path, node -> name);
-  }
-  else {
+  } else {
     node -> path = malloc(sizeof(char) * (strlen(node->name) + strlen(parent_path) + 2));
     strcpy(node -> path, parent_path);
     strcat(node -> path, "/");
@@ -157,7 +156,8 @@ void graph_destroy(Graph* graph)
 ////////////////////////////////
 
 /** Imprime los nodos para aludir un arbol */
-static void node_printer(Node *node, int depth) {
+static void node_printer(Node *node, int depth)
+{
   if (node) {
     for (int i = 0; i < node -> count; i++) {
       for (int j = 0; j < depth; j++) {

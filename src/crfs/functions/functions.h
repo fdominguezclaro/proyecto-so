@@ -42,4 +42,4 @@ Index_block *read_index_block(unsigned int index);
 void write_index_block(unsigned int index, Index_block *iblock, unsigned int offset);
 
 /** Reads nbytes from index and offset statements and saves it in buffer */
-void read_disk_to_buffer(unsigned int nbytes, unsigned int index, unsigned int offset, void *buffer);
+void read_file_to_buffer(unsigned int nbytes, crFILE *file_desc, void *buffer);

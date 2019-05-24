@@ -81,7 +81,7 @@ static Dir_parser *read_entry(unsigned char *buffer, unsigned char *bytemap, int
 	// else if (type == (unsigned char) 4) printf("FILE %s index: %u\n", name, index);
 
 	return dir_parser_init(type, name, index, offset);
-};
+}
 
 /** Lee un bloque de directorio en el indice index
  * Retorna un array de Dir_parser que representan los archivos en este directorio
@@ -96,8 +96,7 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	Dir_parser **dir_parser = malloc(sizeof(Dir_parser *) * 64);
 
 	// Lee un bloque completo
-	for (int i = 0; i < 64; i++)
-	{
+	for (int i = 0; i < 64; i++) {
 		fseek(file, (32 * i) + ((unsigned int) ((index) * BLOCK_SIZE)), SEEK_SET);
 		fread(buffer, sizeof(unsigned char), 32, file);
 		dir_parser[i] = read_entry(buffer, bytemap, i * 32);
@@ -106,7 +105,7 @@ static Dir_parser **read_dir_block(unsigned int index, unsigned char *bytemap)
 	free(buffer);
 	fclose(file);
 	return dir_parser;
-};
+}
 
 /** Escribe un bloque de directorio en el disco */
 void write_dir_block(unsigned int index, Dir_parser *dir)
@@ -345,10 +344,10 @@ void write_index_block(unsigned int index, Index_block *iblock, unsigned int off
 }
 
 /** Reads nbytes from index and offset statements and saves it in buffer */
-void read_disk_to_buffer(unsigned int nbytes, unsigned int index, unsigned int offset, void *buffer)
+void read_file_to_buffer(unsigned int nbytes, crFILE *file_desc, void *buffer)
 {
 	FILE *file = fopen(DISK_PATH, "r");
-	fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
-	fread(buffer, nbytes, 1, file);
+	// fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
+	// fread(buffer, nbytes, 1, file);
 	fclose(file);
 }

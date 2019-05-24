@@ -30,6 +30,9 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   dir_name++;
   directory -> name = dir_name;
 
+  cr_file -> actual_data_pointer = cr_file -> iblock -> data_pointers[0];
+  cr_file -> actual_indirect_block = cr_file -> iblock -> indirect_blocks[0];
+
   return cr_file;
 }
 
@@ -53,7 +56,7 @@ void cr_mount(char* diskname)
 }
 
 /** Printea el bitmap, la cantidad de 1's y 0's */
-void cr_bitmap()
+void cr_bitmap(void)
 {
   Graph* graph = load_disk();
   int count_ones = 0;
@@ -257,11 +260,11 @@ int cr_read(crFILE* file_desc, void* buffer, int nbytes)
   unsigned int aux_offset = 0;
   if (file_desc -> amount_read + nbytes > file_desc -> iblock -> size) {
     aux_offset = file_desc -> iblock -> size - file_desc -> amount_read;
-    read_disk_to_buffer(aux_offset, file_desc -> directory -> index, file_desc -> amount_read, buffer);
+    read_file_to_buffer(aux_offset, file_desc, buffer);
     file_desc -> amount_read = file_desc -> iblock -> size;
     return aux_offset;
   }
-  read_disk_to_buffer(nbytes, file_desc -> directory -> index, file_desc -> amount_read, buffer);
+  read_file_to_buffer(nbytes, file_desc, buffer);
   file_desc -> amount_read += nbytes;
   return nbytes;
 }

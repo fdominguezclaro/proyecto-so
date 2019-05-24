@@ -7,11 +7,13 @@
 
 /** Representa un archivo abierto */
 typedef struct FILE {
-    Dir_parser *directory;
-    Index_block *iblock;
-    unsigned char mode;
-    unsigned int amount_read;
     char *path;
+    unsigned char mode;
+    Index_block *iblock;
+    Dir_parser *directory;
+    unsigned int amount_read;
+    unsigned int *actual_data_pointer;
+    unsigned int *actual_indirect_block;
 } crFILE;
 
 ////////////////////////////////////
@@ -22,7 +24,7 @@ typedef struct FILE {
 void cr_mount(char* diskname);
 
 /** Printea el bitmap, la cantidad de 1's y 0's */
-void cr_bitmap();
+void cr_bitmap(void);
 
 int cr_exists(char* path);
 
