@@ -417,10 +417,21 @@ int cr_unload(char* orig, char* dest)
   strcat(path, "/");
 
   Node *dir = graph_search(graph -> root, orig);
+
+  if (!dir) {
+    errno = 2;
+    fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+    graph_destroy(graph);
+    free(path);
+    return -1;
+  }
+
   // Escribo recursivmente
   write_file(path, dir);
   free(path);
   graph_destroy(graph);
+
+  return 0;
 }
 
 int cr_load(char* orig)
