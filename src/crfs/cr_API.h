@@ -12,8 +12,9 @@ typedef struct FILE {
     Index_block *iblock;
     Dir_parser *directory;
     unsigned int amount_read;
-    unsigned int *actual_data_pointer;
-    unsigned int *actual_indirect_block;
+    unsigned int actual_offset;
+    unsigned int *data_pointers;
+    unsigned int actual_data_index;
 } crFILE;
 
 ////////////////////////////////////

@@ -22,6 +22,8 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   cr_file -> mode = mode;
   cr_file -> iblock = iblock;
   cr_file -> amount_read = 0;
+  cr_file -> actual_offset = 0;
+  cr_file -> actual_data_index = 0;
   cr_file -> path = malloc(sizeof(char) * (strlen(path) + 1));
   strcpy(cr_file -> path, path);
 
@@ -30,8 +32,17 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   dir_name++;
   directory -> name = dir_name;
 
-  cr_file -> actual_data_pointer = cr_file -> iblock -> data_pointers[0];
-  cr_file -> actual_indirect_block = cr_file -> iblock -> indirect_blocks[0];
+  cr_file -> data_pointers = calloc(5620, sizeof(unsigned int));
+  
+  for (int i = 0; i < 500; i++) cr_file -> data_pointers[i] = cr_file -> iblock -> data_pointers[i];
+
+  unsigned int *data_buffer;
+  for (int i = 0; i < 10; i++) {
+    data_buffer = read_data_block(cr_file -> iblock -> indirect_blocks[i]);
+    for (int j = 0; j < 512; j++) cr_file -> data_pointers[500 + i * 512] = data_buffer[j];
+    free(data_buffer);
+  }
+
 
   return cr_file;
 }
@@ -245,7 +256,7 @@ crFILE* cr_open(char* path, char mode)
   return cr_file;
 }
 
-int cr_read(crFILE* file_desc, void* buffer, int nbytes)
+int cr_read(crFILE* file_desc, void *buffer, int nbytes)
 {
   if (!file_desc) {
     errno = 2;
@@ -257,15 +268,12 @@ int cr_read(crFILE* file_desc, void* buffer, int nbytes)
     return -1;
   }
 
-  unsigned int aux_offset = 0;
   if (file_desc -> amount_read + nbytes > file_desc -> iblock -> size) {
-    aux_offset = file_desc -> iblock -> size - file_desc -> amount_read;
-    read_file_to_buffer(aux_offset, file_desc, buffer);
-    file_desc -> amount_read = file_desc -> iblock -> size;
-    return aux_offset;
+    unsigned int aux_read = file_desc -> iblock -> size - file_desc -> amount_read;
+    read_file_to_buffer(aux_read, file_desc, buffer);
+    return aux_read;
   }
   read_file_to_buffer(nbytes, file_desc, buffer);
-  file_desc -> amount_read += nbytes;
   return nbytes;
 }
 
@@ -416,9 +424,10 @@ int cr_load(char* orig)
 
 void crFILE_destroy(crFILE *cr_file)
 {
-  iblock_destroy(cr_file -> iblock);
-  free(cr_file -> path);
   dir_parser_destroy(cr_file -> directory);
+  iblock_destroy(cr_file -> iblock);
+  free(cr_file -> data_pointers);
+  free(cr_file -> path);
   free(cr_file);
 }
 
@@ -444,13 +453,9 @@ void crFILE_printer(crFILE *cr_file)
   puts("iblock");
   printf("nh: %u | Size: %u | Data Pointers: ",
           cr_file->iblock->n_hardlinks, cr_file->iblock->size);
-  for (int i = 0; i < 500; i++) {
-    if (i != 499) printf("%u, ", cr_file->iblock->data_pointers[i]);
-    else printf("%u | Indirect Blocks: ", cr_file->iblock->data_pointers[i]);
-  }
-  for (int i = 0; i < 10; i++) {
-    if (i != 9) printf("%u, ", cr_file->iblock->indirect_blocks[i]);
-    else printf("%u", cr_file->iblock->indirect_blocks[i]);
+  for (int i = 0; i < 5620; i++) {
+    if (i != 5619) printf("%u, ", cr_file->data_pointers[i]);
+    else printf("%u | Indirect Blocks: ", cr_file->data_pointers[i]);
   }
   puts("\n--------------");
 }

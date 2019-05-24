@@ -344,10 +344,54 @@ void write_index_block(unsigned int index, Index_block *iblock, unsigned int off
 }
 
 /** Reads nbytes from index and offset statements and saves it in buffer */
-void read_file_to_buffer(unsigned int nbytes, crFILE *file_desc, void *buffer)
+void read_file_to_buffer(unsigned int nbytes, crFILE *cr_file, void *buffer)
 {
 	FILE *file = fopen(DISK_PATH, "r");
-	// fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
-	// fread(buffer, nbytes, 1, file);
+	fflush(stdout);
+	buffer += cr_file -> amount_read;
+	int aux = 0;
+	for (int i = cr_file -> actual_data_index; i < 5620; i++) {
+		fseek(file, (unsigned int) ((BLOCK_SIZE * cr_file -> data_pointers[cr_file -> actual_data_index]) + cr_file -> actual_offset), SEEK_SET);
+		while (aux < nbytes && cr_file -> amount_read < cr_file -> iblock -> size && 
+				cr_file -> actual_offset < 2048) {
+			fread(buffer, sizeof(char), 1, file);
+			cr_file -> actual_offset++;
+			cr_file -> amount_read++;
+			buffer++;
+			aux++;
+		}
+		if (cr_file -> actual_offset == 2048) {
+			cr_file -> actual_offset = 0;
+			cr_file -> actual_data_index++;
+		}
+		if (cr_file -> amount_read == nbytes || cr_file -> amount_read == cr_file -> iblock -> size) break;
+	}
 	fclose(file);
+}
+
+/** Lee 512 bloques de datos para archivos */
+unsigned int *read_data_block(unsigned int index)
+{
+	FILE *file = fopen(DISK_PATH, "rb");
+
+	unsigned char *buffer = malloc(sizeof(unsigned char) * 2048);
+
+	fseek(file, (unsigned int) (index * BLOCK_SIZE), SEEK_SET);
+	fread(buffer, sizeof(unsigned char), 2048, file);
+
+	unsigned int p2 = (unsigned int) pow(2, 8);
+
+	unsigned int *data_pointers = calloc(512, sizeof(unsigned int));
+	unsigned int ptr;
+
+	// Lee los 500 punteros de direccionamiento directo
+	for (int i = 0; i < 2048; i += 4) {
+		ptr = (unsigned int) buffer[i + 2] * p2 + (unsigned int) buffer[i + 3];
+		data_pointers[i/ 4] = ptr;
+	};
+
+	free(buffer);
+	fclose(file);
+
+	return data_pointers;
 }

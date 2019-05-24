@@ -43,3 +43,6 @@ void write_index_block(unsigned int index, Index_block *iblock, unsigned int off
 
 /** Reads nbytes from index and offset statements and saves it in buffer */
 void read_file_to_buffer(unsigned int nbytes, crFILE *file_desc, void *buffer);
+
+/** Lee 512 bloques de datos para archivos */
+unsigned int *read_data_block(unsigned int index);
