@@ -1,5 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
 
 #include "cr_API.h"
 #include "functions/functions.h"
@@ -33,7 +37,7 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   directory -> name = dir_name;
 
   cr_file -> data_pointers = calloc(5620, sizeof(unsigned int));
-  
+
   for (int i = 0; i < 500; i++) cr_file -> data_pointers[i] = cr_file -> iblock -> data_pointers[i];
 
   unsigned int *data_buffer;
@@ -413,8 +417,17 @@ int cr_unload(char* orig, char* dest)
 int cr_load(char* orig)
 {
   Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
+
+  // Meto todo a una carpeta Downloads
+  char *path = malloc(1000 * sizeof(char));
+  strcpy(path, "Downloads");
+  mkdir("Downloads", 0777);
+  strcat(path, "/");
+
+  Node *dir = graph_search(graph -> root, orig);
+  // Escribo recursivmente
+  write_file(path, dir);
+  free(path);
   graph_destroy(graph);
 }
 

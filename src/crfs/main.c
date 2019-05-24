@@ -19,11 +19,8 @@ int main(int argc, char *argv[])
   // Se monta el disco.
   cr_mount(argv[1]);
 
-  cr_ls("/root");
-  crFILE *cr_file = cr_open("/root/germy.txtt", 'r');
-  if (cr_file) crFILE_printer(cr_file);
-  cr_close(cr_file);
-
+  cr_ls("/root/memes");
+  cr_load("/root/memes/ruz");
 
   /** DONE
    * cr_mount(char *diskname);
@@ -36,12 +33,12 @@ int main(int argc, char *argv[])
    * cr_open(char *path, char mode);
    * cr_close(crFILE *file_desc);
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
+   * cr_load(char *orig);
   */
 
   /** TO DO
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_unload(char *orig, char *dest);
-   * cr_load(char *orig);
   */
 
   // crFILE* file_desc = cr_open("../../files/test.txt", 'w');

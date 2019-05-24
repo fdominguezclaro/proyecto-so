@@ -46,3 +46,6 @@ void read_file_to_buffer(unsigned int nbytes, crFILE *file_desc, void *buffer);
 
 /** Lee 512 bloques de datos para archivos */
 unsigned int *read_data_block(unsigned int index);
+
+/** Escribe un archivo o directorio recursivamente */
+void write_file(char * path, Node *file);
