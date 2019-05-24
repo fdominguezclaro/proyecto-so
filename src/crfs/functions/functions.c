@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <math.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "../structs/graph.h"
 #include "../structs/structs.h"
@@ -335,7 +338,7 @@ void write_index_block(unsigned int index, Index_block *iblock, unsigned int off
 {
 	write_4bytes(index, offset, iblock -> size);
 	write_4bytes(index, offset + 4, iblock -> n_hardlinks);
-	
+
 	unsigned char *buffer = calloc(2040, sizeof(unsigned char));
 
 	for (int i = 8, j = 0; i < 2008; i += 4, j++) write_4bytes(index, offset + i, iblock->data_pointers[j]);
@@ -352,7 +355,7 @@ void read_file_to_buffer(unsigned int nbytes, crFILE *cr_file, void *buffer)
 	int aux = 0;
 	for (int i = cr_file -> actual_data_index; i < 5620; i++) {
 		fseek(file, (unsigned int) ((BLOCK_SIZE * cr_file -> data_pointers[cr_file -> actual_data_index]) + cr_file -> actual_offset), SEEK_SET);
-		while (aux < nbytes && cr_file -> amount_read < cr_file -> iblock -> size && 
+		while (aux < nbytes && cr_file -> amount_read < cr_file -> iblock -> size &&
 				cr_file -> actual_offset < 2048) {
 			fread(buffer, sizeof(char), 1, file);
 			cr_file -> actual_offset++;
@@ -394,4 +397,40 @@ unsigned int *read_data_block(unsigned int index)
 	fclose(file);
 
 	return data_pointers;
+}
+
+void write_file(char * path, Node *file) {
+  char *new_path = malloc(1000 * sizeof(char));
+	strcpy(new_path, path);
+	strcat(new_path, file -> name);
+
+  // Si es un directorio hago un llamado recursivo de los hijos
+  if (file -> type == (unsigned char) 2) {
+		// Creo un subdirectorio
+		mkdir(new_path, 0777);
+		strcat(new_path, "/");
+		// Llamado recursivo a cada hijo
+		for (int i = 0; i < file -> count; i++) {
+			write_file(new_path, file -> childs[i]);
+    }
+		free(new_path);
+  } // Si es un archivo lo copio al disco
+	else if (file -> type == (unsigned char) 4) {
+		crFILE *cr_file = cr_open(file -> path, 'r');
+
+		int nbytes = cr_file -> iblock -> size;
+		char* buffer = calloc(nbytes, sizeof(char));
+
+		// Leo el archivo completo
+		cr_read(cr_file, buffer, nbytes);
+
+		// Archivo de salida
+		FILE * output = fopen(new_path, "wb");
+
+		fwrite(buffer, sizeof(char), nbytes, output);
+		cr_close(cr_file);
+		fclose(output);
+		free(buffer);
+		free(new_path);
+	}
 }
