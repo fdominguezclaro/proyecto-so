@@ -35,10 +35,10 @@ int main(int argc, char *argv[])
    * cr_hardlink(char *orig, char *dest);
    * cr_open(char *path, char mode);
    * cr_close(crFILE *file_desc);
+   * cr_read(crFILE *file_desc, void *buffer, int nbytes);
   */
 
   /** TO DO
-   * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_unload(char *orig, char *dest);
    * cr_load(char *orig);
