@@ -21,6 +21,7 @@ static crFILE *crFILE_init(Dir_parser *directory, Index_block *iblock, unsigned 
   
   cr_file -> mode = mode;
   cr_file -> iblock = iblock;
+  cr_file -> amount_read = 0;
   cr_file -> path = malloc(sizeof(char) * (strlen(path) + 1));
   strcpy(cr_file -> path, path);
 
@@ -243,10 +244,26 @@ crFILE* cr_open(char* path, char mode)
 
 int cr_read(crFILE* file_desc, void* buffer, int nbytes)
 {
-  Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
+  if (!file_desc) {
+    errno = 2;
+    fprintf(stderr, "Error reading file: %s\n", strerror(errno));
+    return -1;
+  } else if (file_desc -> mode != 'r') {
+    errno = EACCES;
+    fprintf(stderr, "Error reading file: %s\n", strerror(errno));
+    return -1;
+  }
+
+  unsigned int aux_offset = 0;
+  if (file_desc -> amount_read + nbytes > file_desc -> iblock -> size) {
+    aux_offset = file_desc -> iblock -> size - file_desc -> amount_read;
+    read_disk_to_buffer(aux_offset, file_desc -> directory -> index, file_desc -> amount_read, buffer);
+    file_desc -> amount_read = file_desc -> iblock -> size;
+    return aux_offset;
+  }
+  read_disk_to_buffer(nbytes, file_desc -> directory -> index, file_desc -> amount_read, buffer);
+  file_desc -> amount_read += nbytes;
+  return nbytes;
 }
 
 int cr_write(crFILE* file_desc, void* buffer, int nbytes)
@@ -263,7 +280,7 @@ int cr_close(crFILE* file_desc)
     crFILE_destroy(file_desc);
     return 0;
   }
-  errno = EIO;
+  errno = 2;
   fprintf(stderr, "Error closing file: %s\n", strerror(errno));
   return -1;
 }

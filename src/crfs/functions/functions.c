@@ -329,7 +329,7 @@ Index_block *read_index_block(unsigned int index)
 	fclose(file);
 
 	return index_block;
-};
+}
 
 /** Escribe en un bloque indice */
 void write_index_block(unsigned int index, Index_block *iblock, unsigned int offset)
@@ -342,4 +342,13 @@ void write_index_block(unsigned int index, Index_block *iblock, unsigned int off
 	for (int i = 8, j = 0; i < 2008; i += 4, j++) write_4bytes(index, offset + i, iblock->data_pointers[j]);
 	for (int i = 2008, j = 0; i < 2040; i += 4, j++) write_4bytes(index, offset, iblock->indirect_blocks[j]);
 	free(buffer);
-};
+}
+
+/** Reads nbytes from index and offset statements and saves it in buffer */
+void read_disk_to_buffer(unsigned int nbytes, unsigned int index, unsigned int offset, void *buffer)
+{
+	FILE *file = fopen(DISK_PATH, "r");
+	fseek(file, (unsigned int) ((BLOCK_SIZE * index) + offset), SEEK_SET);
+	fread(buffer, nbytes, 1, file);
+	fclose(file);
+}

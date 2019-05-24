@@ -20,29 +20,9 @@ int main(int argc, char *argv[])
   cr_mount(argv[1]);
 
   cr_ls("/root");
-  crFILE *cr_file = cr_open("/root/SSBS2.mp3", 'w');
+  crFILE *cr_file = cr_open("/root/germy.txtt", 'r');
   if (cr_file) crFILE_printer(cr_file);
-  if (cr_file) crFILE_destroy(cr_file);
-
-  cr_ls("/root");
-  crFILE *cr_file1 = cr_open("/root/SSBS.mp3", 'r');
-  if (cr_file1) crFILE_printer(cr_file1);
-  if (cr_file1) crFILE_destroy(cr_file1);
-  
-  cr_ls("/root");
-  crFILE *cr_file2 = cr_open("/root/SSBS.mp3", 'w');
-  if (cr_file2) crFILE_printer(cr_file2);
-  if (cr_file2) crFILE_destroy(cr_file2);
-
-  cr_ls("/root");
-  crFILE *cr_file3 = cr_open("/root/SSBS2.mp3", 'w');
-  if (cr_file3) crFILE_printer(cr_file3);
-  if (cr_file3) crFILE_destroy(cr_file3);
-
-  cr_ls("/root");
-
-
-  // cr_bitmap();
+  cr_close(cr_file);
 
   /** DONE
    * cr_mount(char *diskname);
@@ -53,12 +33,12 @@ int main(int argc, char *argv[])
    * cr_rm(char *path);
    * cr_hardlink(char *orig, char *dest);
    * cr_open(char *path, char mode);
+   * cr_close(crFILE *file_desc);
   */
 
   /** TO DO
    * cr_read(crFILE *file_desc, void *buffer, int nbytes);
    * cr_write(crFILE *file_desc, void *buffer, int nbytes);
-   * cr_close(crFILE *file_desc);
    * cr_unload(char *orig, char *dest);
    * cr_load(char *orig);
   */
