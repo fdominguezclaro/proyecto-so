@@ -283,10 +283,24 @@ int cr_read(crFILE* file_desc, void *buffer, int nbytes)
 
 int cr_write(crFILE* file_desc, void* buffer, int nbytes)
 {
-  Graph* graph = load_disk();
-  // graph_printer(graph);
-  /** Work Here */
-  graph_destroy(graph);
+  if (!file_desc) {
+    errno = 2;
+    fprintf(stderr, "Error writing file: %s\n", strerror(errno));
+    return -1;
+  } else if (file_desc -> mode != 'w') {
+    errno = EACCES;
+    fprintf(stderr, "Error writing file: %s\n", strerror(errno));
+    return -1;
+  }
+
+  for (int i = 0; i < nbytes; i++){
+    write_byte(file_desc -> actual_data_index, file_desc -> actual_offset, buffer);
+    file_desc -> actual_data_index++;
+    file_desc -> actual_offset++;
+    buffer++;
+  }
+
+  return nbytes;
 }
 
 int cr_close(crFILE* file_desc)

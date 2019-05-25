@@ -372,6 +372,8 @@ void read_file_to_buffer(unsigned int nbytes, crFILE *cr_file, void *buffer)
 	fclose(file);
 }
 
+void write_file_to_buffer()
+
 /** Lee 512 bloques de datos para archivos */
 unsigned int *read_data_block(unsigned int index)
 {

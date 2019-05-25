@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
 
   cr_ls("/root/memes");
   cr_load("/root/memes/ruz");
+  crFILE* file = cr_open("/root/xd.txt", "w");
+  void* buffer = "hola esta es una prueba";
+  cr_write(file, buffer, 24);
 
   /** DONE
    * cr_mount(char *diskname);
@@ -37,7 +40,6 @@ int main(int argc, char *argv[])
   */
 
   /** TO DO
-   * cr_write(crFILE *file_desc, void *buffer, int nbytes);
    * cr_unload(char *orig, char *dest);
   */
 
