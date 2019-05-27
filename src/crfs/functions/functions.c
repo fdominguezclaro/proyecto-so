@@ -40,7 +40,7 @@ int byteToBits(unsigned char byte)
 		counter++;
 	}
 	binary_number[counter] = '\0';
-	// printf("%s", binary_number);
+	printf("%s", binary_number);
 	free(binary_number);
 	return ones_counter;
 }
